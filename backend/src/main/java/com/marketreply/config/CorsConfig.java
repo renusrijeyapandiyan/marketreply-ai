@@ -19,7 +19,7 @@ public class CorsConfig {
                                 "http://127.0.0.1:5173",
                                 "https://marketreply-ai-frontend.onrender.com"
                         )
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
             }
