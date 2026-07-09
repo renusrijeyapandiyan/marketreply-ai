@@ -43,6 +43,7 @@ public class DTOMapper {
         dto.setId(conversation.getId());
         dto.setSellerId(conversation.getSellerId());
         dto.setSellerName(sellerName);
+        dto.setBuyerId(conversation.getBuyerId());
         dto.setBuyerMessage(conversation.getBuyerMessage());
         dto.setAiAnalysis(conversation.getAiAnalysis());
         dto.setFinalReply(conversation.getFinalReply());

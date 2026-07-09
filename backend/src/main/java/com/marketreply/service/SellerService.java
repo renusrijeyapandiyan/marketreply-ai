@@ -63,6 +63,11 @@ public class SellerService {
         return sellerRepository.findByOwnerId(ownerId).stream().map(DTOMapper::toDTO).toList();
     }
 
+    /** Public marketplace listing: every seller profile, regardless of owner, for buyers to browse. */
+    public List<SellerDTO> getMarketplaceSellers() {
+        return sellerRepository.findAll().stream().map(DTOMapper::toDTO).toList();
+    }
+
     public void deleteSeller(String ownerId, String id) {
         Seller existing = getOwnedSellerOrThrow(ownerId, id);
         sellerRepository.delete(existing);

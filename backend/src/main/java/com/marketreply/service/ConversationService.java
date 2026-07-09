@@ -3,7 +3,6 @@ package com.marketreply.service;
 import com.marketreply.dto.AIResponseDTO;
 import com.marketreply.dto.ConversationDTO;
 import com.marketreply.dto.DashboardDTO;
-import com.marketreply.exception.InvalidRequestException;
 import com.marketreply.exception.ResourceNotFoundException;
 import com.marketreply.mapper.DTOMapper;
 import com.marketreply.model.AIAnalysis;
@@ -11,7 +10,6 @@ import com.marketreply.model.Conversation;
 import com.marketreply.model.Seller;
 import com.marketreply.repository.ConversationRepository;
 import com.marketreply.repository.SellerRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,7 +22,12 @@ import java.util.Set;
 /**
  * Handles the end-to-end "analyze a buyer message" flow: runs the AI
  * analysis, persists the conversation, and exposes history/dashboard reads.
- * Everything is scoped to the authenticated user's own seller profiles.
+ *
+ * Any authenticated user can message any seller in the marketplace (they're
+ * acting as a "buyer" in that moment). History and dashboard reflect two
+ * different vantage points for the same user:
+ *  - as a SELLER: conversations sent to listings they own
+ *  - as a BUYER: conversations they personally sent to any seller
  */
 @Service
 public class ConversationService {
@@ -41,17 +44,16 @@ public class ConversationService {
         this.aiAnalysisService = aiAnalysisService;
     }
 
-    public AIResponseDTO analyzeAndSave(String ownerId, String sellerId, String buyerMessage) {
+    /** buyerId is whichever authenticated user is sending the message right now. */
+    public AIResponseDTO analyzeAndSave(String buyerId, String sellerId, String buyerMessage) {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + sellerId));
-        if (!seller.getOwnerId().equals(ownerId)) {
-            throw new InvalidRequestException("You do not have access to this seller profile");
-        }
 
         AIAnalysis analysis = aiAnalysisService.analyze(seller, buyerMessage);
 
         Conversation conversation = new Conversation();
         conversation.setSellerId(sellerId);
+        conversation.setBuyerId(buyerId);
         conversation.setBuyerMessage(buyerMessage);
         conversation.setAiAnalysis(analysis);
         conversation.setFinalReply(analysis.getSuggestedReply());
@@ -61,20 +63,19 @@ public class ConversationService {
         return new AIResponseDTO(saved.getId(), analysis);
     }
 
-    public List<ConversationDTO> getHistory(String ownerId, String sellerId) {
-        Set<String> ownedSellerIds = ownedSellerIds(ownerId);
+    /**
+     * Returns every conversation the current user has visibility into: ones sent
+     * to a listing they own, plus ones they personally sent as a buyer.
+     * An optional sellerId narrows it to just that listing (still respecting
+     * the same visibility rule).
+     */
+    public List<ConversationDTO> getHistory(String userId, String sellerId) {
+        Set<String> ownedSellerIds = ownedSellerIds(userId);
 
-        List<Conversation> conversations;
-        if (sellerId != null && !sellerId.isBlank()) {
-            if (!ownedSellerIds.contains(sellerId)) {
-                throw new InvalidRequestException("You do not have access to this seller profile");
-            }
-            conversations = conversationRepository.findBySellerId(sellerId, Sort.by(Sort.Direction.DESC, "createdAt"));
-        } else {
-            conversations = conversationRepository.findAllByOrderByCreatedAtDesc().stream()
-                    .filter(c -> ownedSellerIds.contains(c.getSellerId()))
-                    .toList();
-        }
+        List<Conversation> conversations = conversationRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(c -> ownedSellerIds.contains(c.getSellerId()) || userId.equals(c.getBuyerId()))
+                .filter(c -> sellerId == null || sellerId.isBlank() || sellerId.equals(c.getSellerId()))
+                .toList();
 
         Map<String, String> sellerNameCache = new HashMap<>();
         return conversations.stream()
@@ -82,15 +83,20 @@ public class ConversationService {
                 .toList();
     }
 
-    public ConversationDTO getConversation(String ownerId, String id) {
+    public ConversationDTO getConversation(String userId, String id) {
         Conversation conversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found: " + id));
-        if (!ownedSellerIds(ownerId).contains(conversation.getSellerId())) {
-            throw new InvalidRequestException("You do not have access to this conversation");
+
+        boolean isOwner = ownedSellerIds(userId).contains(conversation.getSellerId());
+        boolean isBuyer = userId.equals(conversation.getBuyerId());
+        if (!isOwner && !isBuyer) {
+            throw new ResourceNotFoundException("Conversation not found: " + id);
         }
+
         return DTOMapper.toDTO(conversation, resolveSellerName(conversation.getSellerId(), new HashMap<>()));
     }
 
+    /** Dashboard reflects the user's view as a SELLER: activity on listings they own. */
     public DashboardDTO getDashboard(String ownerId) {
         Set<String> ownedSellerIds = ownedSellerIds(ownerId);
 

@@ -47,6 +47,16 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getAllSellers(ownerId(request)));
     }
 
+    /**
+     * Public marketplace: every seller's listing, for any logged-in user to browse
+     * and pick one to message via the Buyer Analyzer. Declared before "/{id}" so
+     * Spring matches this exact literal path first.
+     */
+    @GetMapping("/marketplace")
+    public ResponseEntity<List<SellerDTO>> getMarketplaceSellers() {
+        return ResponseEntity.ok(sellerService.getMarketplaceSellers());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeller(@PathVariable String id, HttpServletRequest request) {
         sellerService.deleteSeller(ownerId(request), id);

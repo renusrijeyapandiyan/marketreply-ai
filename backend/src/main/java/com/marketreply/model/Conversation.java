@@ -19,6 +19,10 @@ public class Conversation {
     @Indexed
     private String sellerId;
 
+    /** The authenticated user who sent this buyer message (may differ from the seller's owner). */
+    @Indexed
+    private String buyerId;
+
     private String buyerMessage;
     private AIAnalysis aiAnalysis;
     private String finalReply;
@@ -41,6 +45,14 @@ public class Conversation {
 
     public void setSellerId(String sellerId) {
         this.sellerId = sellerId;
+    }
+
+    public String getBuyerId() {
+        return buyerId;
+    }
+
+    public void setBuyerId(String buyerId) {
+        this.buyerId = buyerId;
     }
 
     public String getBuyerMessage() {

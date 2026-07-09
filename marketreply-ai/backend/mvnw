@@ -1,0 +1,12 @@
+#!/bin/sh
+# Lightweight placeholder wrapper.
+# This project was generated without the full Maven Wrapper binary/jar.
+# If you have Maven installed locally, just use `mvn` directly, e.g.:
+#   mvn spring-boot:run
+#   mvn clean package
+#
+# To generate a real wrapper (mvnw / mvnw.cmd / .mvn/wrapper/*), run once
+# from this directory (requires Maven installed):
+#   mvn -N io.takari:maven:wrapper -Dmaven=3.9.6
+echo "This is a placeholder. Please run 'mvn spring-boot:run' directly, or generate"
+echo "the Maven wrapper with: mvn -N io.takari:maven:wrapper -Dmaven=3.9.6"

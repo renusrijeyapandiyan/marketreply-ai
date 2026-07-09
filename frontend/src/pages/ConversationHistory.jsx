@@ -1,17 +1,23 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import SearchBar from '../components/history/SearchBar.jsx'
 import FilterBar from '../components/history/FilterBar.jsx'
 import ConversationCard from '../components/history/ConversationCard.jsx'
 import Loader from '../components/common/Loader.jsx'
 import { useHistory } from '../hooks/useHistory.js'
-import { useSeller } from '../hooks/useSeller.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { sellerService } from '../services/sellerService.js'
 
 export default function ConversationHistory() {
-  const { sellers } = useSeller()
+  const { user } = useAuth()
+  const [marketplace, setMarketplace] = useState([])
   const [sellerFilter, setSellerFilter] = useState('')
   const { conversations, loading, error } = useHistory(sellerFilter || undefined)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('ALL')
+
+  useEffect(() => {
+    sellerService.marketplace().then(setMarketplace).catch(() => {})
+  }, [])
 
   const filtered = useMemo(() => {
     return conversations.filter((c) => {
@@ -29,7 +35,9 @@ export default function ConversationHistory() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-slate-900">Conversation history</h1>
-        <p className="text-sm text-slate-500 mt-1">Every buyer message Gemini has analyzed, in one place.</p>
+        <p className="text-sm text-slate-500 mt-1">
+          Messages sent to your listings, and messages you've sent to other sellers.
+        </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -40,7 +48,7 @@ export default function ConversationHistory() {
           onChange={(e) => setSellerFilter(e.target.value)}
         >
           <option value="">All sellers</option>
-          {sellers.map((s) => (
+          {marketplace.map((s) => (
             <option key={s.id} value={s.id}>{s.productName} — {s.name}</option>
           ))}
         </select>
@@ -56,7 +64,13 @@ export default function ConversationHistory() {
         <div className="card p-10 text-center text-slate-500">No conversations match your filters yet.</div>
       ) : (
         <div className="grid sm:grid-cols-2 gap-5">
-          {filtered.map((c) => <ConversationCard key={c.id} conversation={c} />)}
+          {filtered.map((c) => (
+            <ConversationCard
+              key={c.id}
+              conversation={c}
+              viewerRole={c.buyerId === user?.userId ? 'BUYER' : 'SELLER'}
+            />
+          ))}
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ public class ConversationDTO {
     private String id;
     private String sellerId;
     private String sellerName;
+    private String buyerId;
     private String buyerMessage;
     private AIAnalysis aiAnalysis;
     private String finalReply;
@@ -39,6 +40,14 @@ public class ConversationDTO {
 
     public void setSellerName(String sellerName) {
         this.sellerName = sellerName;
+    }
+
+    public String getBuyerId() {
+        return buyerId;
+    }
+
+    public void setBuyerId(String buyerId) {
+        this.buyerId = buyerId;
     }
 
     public String getBuyerMessage() {
