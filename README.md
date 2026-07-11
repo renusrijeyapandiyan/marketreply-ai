@@ -1,52 +1,160 @@
-# MarketReply AI
+# 🤖 MarketReply AI
 
-An AI-powered assistant that helps marketplace sellers respond to buyer messages.
-The buyer's message and the seller's rules (minimum price, delivery, pickup, payment
-methods, etc.) are sent to **Google Gemini (2.5 Flash)**, which returns the buyer's
-intent, extracted details, a rule-compliance check, and a ready-to-send reply.
-
-- **Frontend:** React + Vite + Tailwind CSS
-- **Backend:** Spring Boot (Java 17)
-- **Database:** MongoDB Atlas
-- **AI:** Google Gemini 2.5 Flash (via the Generative Language REST API, called
-  from `GeminiService` using Spring's `WebClient` — this avoids depending on a
-  fast-moving Spring AI starter artifact so the project builds reliably out of
-  the box)
+**MarketReply AI** is an AI-powered web application that helps marketplace sellers generate professional responses to buyer messages. The system analyzes buyer intent using **Google Gemini 2.5 Flash**, checks whether the buyer's request follows the seller's predefined rules, and generates a ready-to-send reply.
 
 ---
 
-## 1. Prerequisites
+## 📌 Project Overview
+
+MarketReply AI simplifies communication between online marketplace sellers and buyers by using Artificial Intelligence.
+
+The application allows sellers to:
+
+- Create personalized seller profiles.
+- Define negotiation rules (minimum price, delivery options, payment methods, etc.).
+- Analyze buyer messages using Google Gemini AI.
+- Generate smart, rule-compliant responses instantly.
+- View conversation history and analytics through an interactive dashboard.
+
+---
+
+## 🚀 Features
+
+### 👤 User Authentication
+- Secure user registration and login
+- JWT-based authentication
+- Each seller profile belongs only to its owner
+
+### 🛍 Seller Profile Management
+- Create and manage multiple seller profiles
+- Configure:
+  - Product information
+  - Listed price
+  - Minimum acceptable price
+  - Delivery/Pickup options
+  - Accepted payment methods
+  - Negotiation style
+
+### 🤖 AI Buyer Message Analysis
+- Analyze buyer messages using Google Gemini 2.5 Flash
+- Detect buyer intent
+- Extract important details such as:
+  - Offered price
+  - Delivery request
+  - Payment preference
+- Verify whether the buyer's request follows seller rules
+- Generate a professional reply ready to send
+
+### 📜 Conversation History
+- Automatically save every AI analysis
+- View previous buyer conversations
+- Access conversation details anytime
+
+### 📊 Dashboard & Analytics
+- Total conversations
+- Seller-wise statistics
+- Buyer interaction analytics
+- Activity overview
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- React Router
+
+## Backend
+- Java 17
+- Spring Boot
+- Spring Security
+- JWT Authentication
+- Spring WebClient
+
+## Database
+- MongoDB Atlas
+
+## AI Integration
+- Google Gemini 2.5 Flash
+- Google Generative Language REST API
+
+---
+
+# 📂 Project Structure
+
+```
+MarketReply-AI
+│
+├── frontend/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── hooks/
+│   ├── routes/
+│   ├── context/
+│   └── styles/
+│
+├── backend/
+│   ├── config/
+│   ├── controller/
+│   ├── service/
+│   ├── repository/
+│   ├── model/
+│   ├── dto/
+│   ├── mapper/
+│   ├── parser/
+│   ├── prompt/
+│   ├── security/
+│   ├── util/
+│   └── exception/
+│
+└── README.md
+```
+
+---
+
+# ⚙ Prerequisites
+
+Before running the project, install:
 
 - Java 17+
-- Maven 3.9+ (or use your IDE's bundled Maven)
-- Node.js 18+ and npm
-- A MongoDB Atlas cluster (free tier is fine) and its connection string
-- A Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
+- Maven 3.9+
+- Node.js 18+
+- npm
+- MongoDB Atlas Account
+- Google Gemini API Key
 
 ---
 
-## 2. Backend setup
+# 🔧 Backend Setup
+
+Navigate to the backend folder:
 
 ```bash
 cd backend
 ```
 
-Open `src/main/resources/application.properties` and set:
+Configure `application.properties`
 
 ```properties
-spring.data.mongodb.uri=mongodb+srv://<user>:<password>@<cluster-url>/marketreply?retryWrites=true&w=majority
-gemini.api-key=${GEMINI_API_KEY:your-gemini-api-key-here}
-jwt.secret=${JWT_SECRET:change-this-default-dev-only-secret-key-please-32chars-min}
+spring.data.mongodb.uri=mongodb+srv://<username>:<password>@cluster.mongodb.net/marketreply
+
+gemini.api-key=${GEMINI_API_KEY}
+
+jwt.secret=${JWT_SECRET}
 ```
 
-The app now has accounts: every seller profile belongs to whoever created it, enforced with a JWT issued at login/register. For local dev the default `jwt.secret` works fine; for anything shared or deployed, set a real `JWT_SECRET` environment variable (any random 32+ character string) instead of relying on the default.
-
-You can either paste the values directly, or export environment variables before
-running (recommended, keeps secrets out of the file):
+Or set environment variables:
 
 ```bash
-export GEMINI_API_KEY="your-real-gemini-key"
-export MONGODB_URI="mongodb+srv://..."   # then reference ${MONGODB_URI} in the properties file
+export GEMINI_API_KEY=your_api_key
+
+export JWT_SECRET=your_secret_key
+
+export MONGODB_URI=your_connection_string
 ```
 
 Run the backend:
@@ -55,88 +163,120 @@ Run the backend:
 mvn spring-boot:run
 ```
 
-The API starts on **http://localhost:8080**. Interactive API docs are available at
-`http://localhost:8080/swagger-ui.html`.
+Backend runs on:
 
-> Note: `mvnw` in this project is a placeholder script (no network access was
-> available while generating this project to download the real Maven Wrapper
-> jar). If you have Maven installed, just use `mvn` as shown above. To generate
-> a real wrapper, run once: `mvn -N io.takari:maven:wrapper -Dmaven=3.9.6`.
+```
+http://localhost:8080
+```
+
+Swagger API:
+
+```
+http://localhost:8080/swagger-ui.html
+```
 
 ---
 
-## 3. Frontend setup
+# 💻 Frontend Setup
+
+Navigate to frontend:
 
 ```bash
 cd frontend
+```
+
+Install dependencies:
+
+```bash
 npm install
+```
+
+Start development server:
+
+```bash
 npm run dev
 ```
 
-The app starts on **http://localhost:5173** and proxies `/api/*` calls to the
-backend at `http://localhost:8080` (see `vite.config.js`).
-
----
-
-## 4. Using the app
-
-1. **Sign up** at `/register` (or log in at `/login` if you already have an account). Every seller profile you create afterward belongs only to your account.
-2. Go to **Seller Settings** and create a seller profile: product, listed price,
-   minimum acceptable price, delivery/pickup options, accepted payment methods,
-   and negotiation style.
-3. Go to **Buyer Analyzer**, pick that seller profile, and paste a buyer message
-   (e.g. *"Can you sell it for ₹500 and deliver today?"*).
-4. Gemini returns the buyer's intent, extracted price/payment/delivery details,
-   whether the request complies with your rules, and a suggested reply you can
-   copy and send.
-5. Every analysis is saved automatically — see it again under **History**, and
-   view aggregate stats under **Dashboard** and **Analytics**.
-
----
-
-## 5. Project structure
+Frontend runs on:
 
 ```
-frontend/   React + Vite + Tailwind app (components, pages, services, hooks)
-backend/    Spring Boot app (controllers, services, repositories, models, Gemini integration)
+http://localhost:5173
 ```
 
-See the full folder tree in the original project brief — this repo mirrors it
-exactly, including `config/`, `controller/`, `service/`, `repository/`, `model/`,
-`dto/`, `mapper/`, `prompt/`, `parser/`, `exception/`, `util/`, and `security/`
-packages on the backend, and `components/{common,dashboard,seller,buyer,history}`,
-`pages/`, `services/`, `hooks/`, `context/`, `utils/`, `routes/`, and `styles/`
-on the frontend.
+---
+
+# 🧠 How It Works
+
+1. Register or log in.
+2. Create a seller profile.
+3. Enter seller rules:
+   - Minimum price
+   - Delivery options
+   - Payment methods
+   - Negotiation style
+4. Open Buyer Analyzer.
+5. Paste a buyer message.
+6. Gemini AI analyzes the message.
+7. The application displays:
+   - Buyer Intent
+   - Extracted Details
+   - Rule Compliance
+   - Suggested Reply
+8. Analysis is automatically saved for future reference.
 
 ---
 
-## 6. REST API summary
+# 🌐 REST API
 
-| Method | Endpoint                         | Description                              |
-|--------|-----------------------------------|-------------------------------------------|
-| POST   | `/api/auth/register`              | Create an account (name, email, password) |
-| POST   | `/api/auth/login`                 | Log in, returns a JWT                     |
-| GET    | `/api/auth/me`                    | Get the current user (requires JWT)       |
-| POST   | `/api/sellers`                    | Create a seller profile (requires JWT)    |
-| GET    | `/api/sellers`                    | List your own sellers (requires JWT)      |
-| GET    | `/api/sellers/{id}`               | Get one seller you own                    |
-| PUT    | `/api/sellers/{id}`               | Update a seller profile you own           |
-| DELETE | `/api/sellers/{id}`               | Delete a seller profile you own           |
-| POST   | `/api/ai/analyze`                 | Analyze a buyer message (`sellerId`, `message`) with Gemini and save it |
-| GET    | `/api/conversations?sellerId=`    | List conversation history for your own sellers |
-| GET    | `/api/conversations/{id}`         | Get one conversation you have access to   |
-| GET    | `/api/dashboard`                  | Aggregated stats scoped to your own data  |
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/api/auth/register` | Register user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/me` | Current user |
+| POST | `/api/sellers` | Create seller profile |
+| GET | `/api/sellers` | Get all seller profiles |
+| GET | `/api/sellers/{id}` | Get seller profile |
+| PUT | `/api/sellers/{id}` | Update seller profile |
+| DELETE | `/api/sellers/{id}` | Delete seller profile |
+| POST | `/api/ai/analyze` | Analyze buyer message |
+| GET | `/api/conversations` | Conversation history |
+| GET | `/api/conversations/{id}` | Conversation details |
+| GET | `/api/dashboard` | Dashboard statistics |
 
-All endpoints except `/api/auth/register` and `/api/auth/login` require an `Authorization: Bearer <token>` header, which the frontend attaches automatically once you're logged in.
+> **Note:** All endpoints except **Register** and **Login** require a JWT token.
 
 ---
 
-## 7. Notes & next steps
+# 🔐 Security
 
-- The optional `ApiKeyFilter` (disabled by default) can protect write endpoints
-  in a shared/demo deployment — enable it via `security.api-key.enabled=true`
-  and set `security.api-key.value`.
-- `GeminiJsonParser` fails gracefully: if Gemini ever returns malformed JSON,
-  the app still saves a fallback analysis instead of erroring out.
-- CORS is currently scoped to `http://localhost:5173` for local development —
-  update `CorsConfig.java` with your production frontend origin before deploying.
+- JWT Authentication
+- Spring Security
+- Protected REST APIs
+- User-specific seller profiles
+- Secure AI request handling
+
+---
+
+# 📈 Future Enhancements
+
+- Multi-language support
+- Voice-to-text buyer analysis
+- WhatsApp & Telegram integration
+- Marketplace API integration
+- AI-powered negotiation suggestions
+- Email notifications
+- Cloud deployment with Docker & Kubernetes
+
+---
+
+# 👨‍💻 Author
+
+**Renu Sri J**
+
+AI & Machine Learning Student
+
+Passionate about building intelligent web applications using AI, Spring Boot, React, and Machine Learning.
+
+---
+
+## ⭐ If you found this project useful, don't forget to star the repository!
