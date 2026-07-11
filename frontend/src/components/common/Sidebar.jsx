@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Store, MessageSquareText, History, BarChart3, Home as HomeIcon } from 'lucide-react'
+import { LayoutDashboard, Store, Users, MessageSquareText, History, BarChart3, Home as HomeIcon } from 'lucide-react'
 import { classNames } from '../../utils/helpers.js'
 
 const items = [
   { to: '/', label: 'Home', icon: HomeIcon },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/seller-settings', label: 'Seller Settings', icon: Store },
+  { to: '/sellers', label: 'All Sellers', icon: Users },
   { to: '/buyer-analyzer', label: 'Buyer Analyzer', icon: MessageSquareText },
   { to: '/history', label: 'History', icon: History },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
