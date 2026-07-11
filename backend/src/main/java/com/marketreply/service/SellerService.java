@@ -11,11 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * CRUD operations for seller profiles and their negotiation rules.
- * Every profile belongs to exactly one authenticated user (ownerId); all
- * reads/writes are scoped so users only ever see their own profiles.
- */
+/** CRUD operations for seller profiles and their negotiation rules. */
 @Service
 public class SellerService {
 
@@ -25,7 +21,7 @@ public class SellerService {
         this.sellerRepository = sellerRepository;
     }
 
-    public SellerDTO createSeller(String ownerId, SellerDTO dto) {
+    public SellerDTO createSeller(SellerDTO dto, String ownerId) {
         Seller seller = DTOMapper.toEntity(dto);
         seller.setId(null);
         seller.setOwnerId(ownerId);
@@ -35,8 +31,13 @@ public class SellerService {
         return DTOMapper.toDTO(saved);
     }
 
-    public SellerDTO updateSeller(String ownerId, String id, SellerDTO dto) {
-        Seller existing = getOwnedSellerOrThrow(ownerId, id);
+    public SellerDTO updateSeller(String id, SellerDTO dto, String ownerId) {
+        Seller existing = sellerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+
+        if (!existing.getOwnerId().equals(ownerId)) {
+            throw new InvalidRequestException("You do not have access to this seller profile");
+        }
 
         existing.setName(dto.getName());
         existing.setEmail(dto.getEmail());
@@ -50,35 +51,35 @@ public class SellerService {
         return DTOMapper.toDTO(saved);
     }
 
-    public SellerDTO getSeller(String ownerId, String id) {
-        return DTOMapper.toDTO(getOwnedSellerOrThrow(ownerId, id));
+    public SellerDTO getSeller(String id) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+        return DTOMapper.toDTO(seller);
     }
 
-    /** Used internally by AI/conversation flows, which only need the entity. */
-    public Seller getSellerEntity(String ownerId, String id) {
-        return getOwnedSellerOrThrow(ownerId, id);
+    public Seller getSellerEntity(String id) {
+        return sellerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
     }
 
-    public List<SellerDTO> getAllSellers(String ownerId) {
+    /** Only the logged-in user's own seller profiles — used by Seller Settings. */
+    public List<SellerDTO> getMySellers(String ownerId) {
         return sellerRepository.findByOwnerId(ownerId).stream().map(DTOMapper::toDTO).toList();
     }
 
-    /** Public marketplace listing: every seller profile, regardless of owner, for buyers to browse. */
-    public List<SellerDTO> getMarketplaceSellers() {
+    /** Every seller profile in the system, regardless of owner — used by the All Sellers directory. */
+    public List<SellerDTO> getAllSellers() {
         return sellerRepository.findAll().stream().map(DTOMapper::toDTO).toList();
     }
 
-    public void deleteSeller(String ownerId, String id) {
-        Seller existing = getOwnedSellerOrThrow(ownerId, id);
-        sellerRepository.delete(existing);
-    }
-
-    private Seller getOwnedSellerOrThrow(String ownerId, String id) {
-        Seller seller = sellerRepository.findById(id)
+    public void deleteSeller(String id, String ownerId) {
+        Seller existing = sellerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
-        if (!seller.getOwnerId().equals(ownerId)) {
+
+        if (!existing.getOwnerId().equals(ownerId)) {
             throw new InvalidRequestException("You do not have access to this seller profile");
         }
-        return seller;
+
+        sellerRepository.deleteById(id);
     }
 }

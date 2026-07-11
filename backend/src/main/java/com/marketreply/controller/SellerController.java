@@ -10,11 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * CRUD endpoints for seller profiles and their negotiation rules.
- * Every request is scoped to the authenticated user via the "authUserId"
- * request attribute set by JwtAuthFilter.
- */
+/** CRUD endpoints for seller profiles and their negotiation rules. */
 @RestController
 @RequestMapping("/api/sellers")
 public class SellerController {
@@ -27,43 +23,39 @@ public class SellerController {
 
     @PostMapping
     public ResponseEntity<SellerDTO> createSeller(@Valid @RequestBody SellerDTO dto, HttpServletRequest request) {
-        String ownerId = ownerId(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(sellerService.createSeller(ownerId, dto));
+        String ownerId = (String) request.getAttribute("authUserId");
+        return ResponseEntity.status(HttpStatus.CREATED).body(sellerService.createSeller(dto, ownerId));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<SellerDTO> updateSeller(@PathVariable String id, @Valid @RequestBody SellerDTO dto,
-                                                   HttpServletRequest request) {
-        return ResponseEntity.ok(sellerService.updateSeller(ownerId(request), id, dto));
+                                                    HttpServletRequest request) {
+        String ownerId = (String) request.getAttribute("authUserId");
+        return ResponseEntity.ok(sellerService.updateSeller(id, dto, ownerId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SellerDTO> getSeller(@PathVariable String id, HttpServletRequest request) {
-        return ResponseEntity.ok(sellerService.getSeller(ownerId(request), id));
+    public ResponseEntity<SellerDTO> getSeller(@PathVariable String id) {
+        return ResponseEntity.ok(sellerService.getSeller(id));
     }
 
+    /** Seller Settings: only the logged-in user's own profiles. */
     @GetMapping
-    public ResponseEntity<List<SellerDTO>> getAllSellers(HttpServletRequest request) {
-        return ResponseEntity.ok(sellerService.getAllSellers(ownerId(request)));
+    public ResponseEntity<List<SellerDTO>> getMySellers(HttpServletRequest request) {
+        String ownerId = (String) request.getAttribute("authUserId");
+        return ResponseEntity.ok(sellerService.getMySellers(ownerId));
     }
 
-    /**
-     * Public marketplace: every seller's listing, for any logged-in user to browse
-     * and pick one to message via the Buyer Analyzer. Declared before "/{id}" so
-     * Spring matches this exact literal path first.
-     */
-    @GetMapping("/marketplace")
-    public ResponseEntity<List<SellerDTO>> getMarketplaceSellers() {
-        return ResponseEntity.ok(sellerService.getMarketplaceSellers());
+    /** All Sellers directory: every seller profile, unscoped. */
+    @GetMapping("/directory")
+    public ResponseEntity<List<SellerDTO>> getAllSellers() {
+        return ResponseEntity.ok(sellerService.getAllSellers());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeller(@PathVariable String id, HttpServletRequest request) {
-        sellerService.deleteSeller(ownerId(request), id);
+        String ownerId = (String) request.getAttribute("authUserId");
+        sellerService.deleteSeller(id, ownerId);
         return ResponseEntity.noContent().build();
-    }
-
-    private String ownerId(HttpServletRequest request) {
-        return (String) request.getAttribute("authUserId");
     }
 }

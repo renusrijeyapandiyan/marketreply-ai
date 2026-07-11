@@ -5,10 +5,6 @@ import SellerDetailModal from '../components/seller/SellerDetailModal.jsx'
 import Loader from '../components/common/Loader.jsx'
 import { sellerService } from '../services/sellerService.js'
 
-/**
- * Read-only directory of every seller profile and product in the system —
- * distinct from Seller Settings, which only manages/edits profiles.
- */
 export default function SellerDirectory() {
   const [sellers, setSellers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,7 +16,7 @@ export default function SellerDirectory() {
     let cancelled = false
     setLoading(true)
     sellerService
-      .list()
+      .listAll()
       .then((data) => { if (!cancelled) setSellers(data) })
       .catch((err) => { if (!cancelled) setError(err.message) })
       .finally(() => { if (!cancelled) setLoading(false) })
