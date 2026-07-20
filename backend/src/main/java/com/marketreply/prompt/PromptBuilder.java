@@ -17,6 +17,7 @@ public class PromptBuilder {
         sb.append("SELLER PROFILE\n");
         sb.append("Product: ").append(nullSafe(seller.getProductName())).append("\n");
         sb.append("Description: ").append(nullSafe(seller.getProductDescription())).append("\n");
+        sb.append("Size: ").append(describeSize(seller.getProductSize())).append("\n");
         sb.append("Listed price: ").append(seller.getListedPrice()).append("\n\n");
 
         SellerRule rules = seller.getRules();
@@ -54,5 +55,15 @@ public class PromptBuilder {
 
     private String nullSafe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String describeSize(String productSize) {
+        if (productSize == null || productSize.isBlank()) {
+            return "not specified";
+        }
+        if ("CUSTOMIZE".equalsIgnoreCase(productSize)) {
+            return "made/sized to order (buyer can request a custom size)";
+        }
+        return productSize;
     }
 }

@@ -16,6 +16,9 @@ export const SENTIMENT_COLORS = {
 
 export const NEGOTIATION_STYLES = ['FLEXIBLE', 'MODERATE', 'FIRM']
 
+/** Must match SellerDTO.CUSTOM_SIZE on the backend. */
+export const CUSTOM_SIZE = 'CUSTOMIZE'
+
 export const PAYMENT_METHOD_OPTIONS = [
   'Cash', 'UPI', 'Bank Transfer', 'Credit Card', 'Debit Card', 'PayPal',
 ]

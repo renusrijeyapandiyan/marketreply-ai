@@ -22,6 +22,8 @@ public class Seller {
     private String productName;
     private String productDescription;
     private Double listedPrice;
+    private String productSize;
+    private java.util.List<String> productImages;
     private SellerRule rules;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
@@ -83,6 +85,22 @@ public class Seller {
 
     public void setListedPrice(Double listedPrice) {
         this.listedPrice = listedPrice;
+    }
+
+    public String getProductSize() {
+        return productSize;
+    }
+
+    public void setProductSize(String productSize) {
+        this.productSize = productSize;
+    }
+
+    public java.util.List<String> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(java.util.List<String> productImages) {
+        this.productImages = productImages;
     }
 
     public SellerRule getRules() {

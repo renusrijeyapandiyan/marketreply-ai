@@ -6,10 +6,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.util.List;
+
 /**
  * Request/response payload for creating or updating a seller profile and rules.
  */
 public class SellerDTO {
+
+    /** Sentinel value for productSize meaning "no fixed size, made/sized to order". */
+    public static final String CUSTOM_SIZE = "CUSTOMIZE";
+
+    /** Server-side ceiling matching the frontend's 10-photo limit. */
+    public static final int MAX_PRODUCT_IMAGES = 10;
 
     private String id;
 
@@ -28,6 +36,12 @@ public class SellerDTO {
     @NotNull(message = "Listed price is required")
     @Positive(message = "Listed price must be positive")
     private Double listedPrice;
+
+    /** Free-text size (e.g. "M", "42", "10x8 ft"), or SellerDTO.CUSTOM_SIZE, or null if not applicable. */
+    private String productSize;
+
+    /** Up to MAX_PRODUCT_IMAGES base64 data-URL strings (e.g. "data:image/jpeg;base64,..."). */
+    private List<String> productImages;
 
     @NotNull(message = "Rules are required")
     private SellerRule rules;
@@ -78,6 +92,22 @@ public class SellerDTO {
 
     public void setListedPrice(Double listedPrice) {
         this.listedPrice = listedPrice;
+    }
+
+    public String getProductSize() {
+        return productSize;
+    }
+
+    public void setProductSize(String productSize) {
+        this.productSize = productSize;
+    }
+
+    public List<String> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<String> productImages) {
+        this.productImages = productImages;
     }
 
     public SellerRule getRules() {

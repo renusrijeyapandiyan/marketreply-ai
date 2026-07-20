@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import Input from '../common/Input.jsx'
 import Button from '../common/Button.jsx'
 import RuleEditor from './RuleEditor.jsx'
+import ImageUploader from './ImageUploader.jsx'
 import { validateSellerForm } from '../../utils/validator.js'
+import { classNames } from '../../utils/helpers.js'
+import { CUSTOM_SIZE } from '../../utils/constants.js'
 
 const emptyForm = {
   name: '',
@@ -10,6 +13,8 @@ const emptyForm = {
   productName: '',
   productDescription: '',
   listedPrice: '',
+  productSize: '',
+  productImages: [],
   rules: {
     minPrice: null,
     deliveryAvailable: true,
@@ -26,8 +31,16 @@ export default function SellerForm({ initialValue, onSubmit, submitting }) {
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    if (initialValue) setForm(initialValue)
+    if (initialValue) {
+      setForm({
+        productImages: [],
+        productSize: '',
+        ...initialValue,
+      })
+    }
   }, [initialValue])
+
+  const isCustomSize = form.productSize === CUSTOM_SIZE
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -90,6 +103,44 @@ export default function SellerForm({ initialValue, onSubmit, submitting }) {
           placeholder="Condition, accessories included, reason for selling, etc."
           value={form.productDescription}
           onChange={(e) => setForm({ ...form, productDescription: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <p className="label">Size (optional)</p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            className={classNames('input-field sm:flex-1', isCustomSize && 'opacity-50 cursor-not-allowed')}
+            placeholder="e.g. M, UK 9, 42, 10x8 ft…"
+            value={isCustomSize ? '' : form.productSize}
+            disabled={isCustomSize}
+            onChange={(e) => setForm({ ...form, productSize: e.target.value })}
+          />
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, productSize: isCustomSize ? '' : CUSTOM_SIZE })}
+            className={classNames(
+              'px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors whitespace-nowrap',
+              isCustomSize
+                ? 'bg-accent-600 border-accent-600 text-white'
+                : 'bg-white border-slate-200 text-slate-600 hover:border-accent-300'
+            )}
+          >
+            {isCustomSize ? '✓ Customize' : "Don't specify — Customize"}
+          </button>
+        </div>
+        <p className="mt-1.5 text-xs text-slate-400">
+          {isCustomSize
+            ? 'Buyers will see this as "made/sized to order" and can request their own size.'
+            : "Leave blank or pick \"Customize\" if size doesn't apply or varies per order."}
+        </p>
+      </div>
+
+      <div>
+        <ImageUploader
+          images={form.productImages || []}
+          onChange={(productImages) => setForm({ ...form, productImages })}
         />
       </div>
 

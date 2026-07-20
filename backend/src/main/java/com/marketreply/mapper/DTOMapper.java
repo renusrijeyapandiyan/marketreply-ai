@@ -22,6 +22,8 @@ public class DTOMapper {
         seller.setProductName(dto.getProductName());
         seller.setProductDescription(dto.getProductDescription());
         seller.setListedPrice(dto.getListedPrice());
+        seller.setProductSize(dto.getProductSize());
+        seller.setProductImages(dto.getProductImages());
         seller.setRules(dto.getRules());
         return seller;
     }
@@ -34,6 +36,8 @@ public class DTOMapper {
         dto.setProductName(seller.getProductName());
         dto.setProductDescription(seller.getProductDescription());
         dto.setListedPrice(seller.getListedPrice());
+        dto.setProductSize(seller.getProductSize());
+        dto.setProductImages(seller.getProductImages());
         dto.setRules(seller.getRules());
         return dto;
     }

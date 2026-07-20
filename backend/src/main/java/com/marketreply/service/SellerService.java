@@ -11,7 +11,11 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 
-/** CRUD operations for seller profiles and their negotiation rules. */
+/**
+ * CRUD operations for seller profiles and their negotiation rules.
+ * Every profile belongs to exactly one authenticated user (ownerId); all
+ * reads/writes are scoped so users only ever see their own profiles.
+ */
 @Service
 public class SellerService {
 
@@ -21,7 +25,9 @@ public class SellerService {
         this.sellerRepository = sellerRepository;
     }
 
-    public SellerDTO createSeller(SellerDTO dto, String ownerId) {
+    public SellerDTO createSeller(String ownerId, SellerDTO dto) {
+        validateImageCount(dto);
+
         Seller seller = DTOMapper.toEntity(dto);
         seller.setId(null);
         seller.setOwnerId(ownerId);
@@ -31,19 +37,18 @@ public class SellerService {
         return DTOMapper.toDTO(saved);
     }
 
-    public SellerDTO updateSeller(String id, SellerDTO dto, String ownerId) {
-        Seller existing = sellerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+    public SellerDTO updateSeller(String ownerId, String id, SellerDTO dto) {
+        validateImageCount(dto);
 
-        if (!existing.getOwnerId().equals(ownerId)) {
-            throw new InvalidRequestException("You do not have access to this seller profile");
-        }
+        Seller existing = getOwnedSellerOrThrow(ownerId, id);
 
         existing.setName(dto.getName());
         existing.setEmail(dto.getEmail());
         existing.setProductName(dto.getProductName());
         existing.setProductDescription(dto.getProductDescription());
         existing.setListedPrice(dto.getListedPrice());
+        existing.setProductSize(dto.getProductSize());
+        existing.setProductImages(dto.getProductImages());
         existing.setRules(dto.getRules());
         existing.setUpdatedAt(Instant.now());
 
@@ -51,35 +56,43 @@ public class SellerService {
         return DTOMapper.toDTO(saved);
     }
 
-    public SellerDTO getSeller(String id) {
-        Seller seller = sellerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
-        return DTOMapper.toDTO(seller);
+    public SellerDTO getSeller(String ownerId, String id) {
+        return DTOMapper.toDTO(getOwnedSellerOrThrow(ownerId, id));
     }
 
-    public Seller getSellerEntity(String id) {
-        return sellerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+    /** Used internally by AI/conversation flows, which only need the entity. */
+    public Seller getSellerEntity(String ownerId, String id) {
+        return getOwnedSellerOrThrow(ownerId, id);
     }
 
-    /** Only the logged-in user's own seller profiles — used by Seller Settings. */
-    public List<SellerDTO> getMySellers(String ownerId) {
+    public List<SellerDTO> getAllSellers(String ownerId) {
         return sellerRepository.findByOwnerId(ownerId).stream().map(DTOMapper::toDTO).toList();
     }
 
-    /** Every seller profile in the system, regardless of owner — used by the All Sellers directory. */
-    public List<SellerDTO> getAllSellers() {
+    /** Public marketplace listing: every seller profile, regardless of owner, for buyers to browse. */
+    public List<SellerDTO> getMarketplaceSellers() {
         return sellerRepository.findAll().stream().map(DTOMapper::toDTO).toList();
     }
 
-    public void deleteSeller(String id, String ownerId) {
-        Seller existing = sellerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+    public void deleteSeller(String ownerId, String id) {
+        Seller existing = getOwnedSellerOrThrow(ownerId, id);
+        sellerRepository.delete(existing);
+    }
 
-        if (!existing.getOwnerId().equals(ownerId)) {
+    /** Defensive server-side check backing the frontend's 10-photo limit. */
+    private void validateImageCount(SellerDTO dto) {
+        if (dto.getProductImages() != null && dto.getProductImages().size() > SellerDTO.MAX_PRODUCT_IMAGES) {
+            throw new InvalidRequestException(
+                    "You can upload at most " + SellerDTO.MAX_PRODUCT_IMAGES + " product photos");
+        }
+    }
+
+    private Seller getOwnedSellerOrThrow(String ownerId, String id) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + id));
+        if (!seller.getOwnerId().equals(ownerId)) {
             throw new InvalidRequestException("You do not have access to this seller profile");
         }
-
-        sellerRepository.deleteById(id);
+        return seller;
     }
 }
