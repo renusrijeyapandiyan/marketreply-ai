@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from '../pages/Home.jsx'
+import Login from '../pages/Login.jsx'
+import Register from '../pages/Register.jsx'
 import Dashboard from '../pages/Dashboard.jsx'
 import SellerSettings from '../pages/SellerSettings.jsx'
 import SellerDirectory from '../pages/SellerDirectory.jsx'
@@ -12,6 +14,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/seller-settings" element={<SellerSettings />} />
       <Route path="/sellers" element={<SellerDirectory />} />
