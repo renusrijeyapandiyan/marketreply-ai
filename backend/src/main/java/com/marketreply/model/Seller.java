@@ -21,9 +21,8 @@ public class Seller {
     private String email;
     private String productName;
     private String productDescription;
+    private String productImageUrl; // Base64 data URI, e.g. "data:image/jpeg;base64,..."
     private Double listedPrice;
-    private String productSize;
-    private java.util.List<String> productImages;
     private SellerRule rules;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
@@ -79,28 +78,20 @@ public class Seller {
         this.productDescription = productDescription;
     }
 
+    public String getProductImageUrl() {
+        return productImageUrl;
+    }
+
+    public void setProductImageUrl(String productImageUrl) {
+        this.productImageUrl = productImageUrl;
+    }
+
     public Double getListedPrice() {
         return listedPrice;
     }
 
     public void setListedPrice(Double listedPrice) {
         this.listedPrice = listedPrice;
-    }
-
-    public String getProductSize() {
-        return productSize;
-    }
-
-    public void setProductSize(String productSize) {
-        this.productSize = productSize;
-    }
-
-    public java.util.List<String> getProductImages() {
-        return productImages;
-    }
-
-    public void setProductImages(java.util.List<String> productImages) {
-        this.productImages = productImages;
     }
 
     public SellerRule getRules() {

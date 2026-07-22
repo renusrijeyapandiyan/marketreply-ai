@@ -6,6 +6,7 @@ import EntityCard from '../components/buyer/EntityCard.jsx'
 import RuleViolationCard from '../components/buyer/RuleViolationCard.jsx'
 import AIResponseCard from '../components/buyer/AIResponseCard.jsx'
 import Loader from '../components/common/Loader.jsx'
+import ProductGallery from '../components/seller/ProductGallery.jsx'
 import { sellerService } from '../services/sellerService.js'
 import { useAI } from '../hooks/useAI.js'
 import { validateBuyerMessage } from '../utils/validator.js'
@@ -92,6 +93,21 @@ export default function BuyerAnalyzer() {
           </>
         )}
       </div>
+
+      {selectedSeller && (
+        <div className="card p-5">
+          <p className="text-xs uppercase tracking-wide text-slate-400 mb-3">Product details</p>
+          <div className="grid sm:grid-cols-[220px_1fr] gap-5">
+            <ProductGallery images={selectedSeller.productImages} alt={selectedSeller.productName} />
+            <div>
+              <p className="font-display font-semibold text-slate-900">{selectedSeller.productName}</p>
+              {selectedSeller.productDescription && (
+                <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">{selectedSeller.productDescription}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <MessageInput onSubmit={handleAnalyze} loading={loading} error={validationError} />
 

@@ -1,5 +1,6 @@
 import { Truck, MapPin, CreditCard, Gauge, Ruler, StickyNote, Mail } from 'lucide-react'
 import Modal from '../common/Modal.jsx'
+import ProductGallery from './ProductGallery.jsx'
 import { formatCurrency } from '../../utils/formatter.js'
 
 function Row({ icon: Icon, label, value }) {
@@ -22,6 +23,8 @@ export default function SellerDetailModal({ seller, onClose }) {
     <Modal open={!!seller} title={seller?.productName || 'Product details'} onClose={onClose}>
       {seller && (
         <div>
+          <ProductGallery images={seller.productImages} alt={seller.productName} />
+
           <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
             <Mail className="h-3.5 w-3.5" /> {seller.name} · {seller.email}
           </p>
@@ -34,25 +37,18 @@ export default function SellerDetailModal({ seller, onClose }) {
             <Row icon={Gauge} label="Listed price" value={formatCurrency(seller.listedPrice)} />
             <Row icon={Gauge} label="Minimum acceptable price" value={formatCurrency(rules.minPrice)} />
             <Row
-              icon={Truck}
-              label="Delivery"
-              value={rules.deliveryAvailable ? 'Available' : 'Not available'}
+              icon={Ruler}
+              label="Size"
+              value={seller.productSize === 'CUSTOMIZE' ? 'Customizable / made to order' : seller.productSize}
             />
-            <Row
-              icon={MapPin}
-              label="Pickup"
-              value={rules.pickupAvailable ? 'Available' : 'Not available'}
-            />
+            <Row icon={Truck} label="Delivery" value={rules.deliveryAvailable ? 'Available' : 'Not available'} />
+            <Row icon={MapPin} label="Pickup" value={rules.pickupAvailable ? 'Available' : 'Not available'} />
             <Row
               icon={Ruler}
               label="Max delivery distance"
               value={rules.maxDeliveryDistanceKm != null ? `${rules.maxDeliveryDistanceKm} km` : null}
             />
-            <Row
-              icon={CreditCard}
-              label="Accepted payment methods"
-              value={rules.acceptedPaymentMethods?.join(', ')}
-            />
+            <Row icon={CreditCard} label="Accepted payment methods" value={rules.acceptedPaymentMethods?.join(', ')} />
             <Row
               icon={Gauge}
               label="Negotiation style"
