@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Store } from 'lucide-react'
 import MessageInput from '../components/buyer/MessageInput.jsx'
-import IntentCard from '../components/buyer/IntentCard.jsx'
-import EntityCard from '../components/buyer/EntityCard.jsx'
-import RuleViolationCard from '../components/buyer/RuleViolationCard.jsx'
-import AIResponseCard from '../components/buyer/AIResponseCard.jsx'
+import ChatThread from '../components/buyer/ChatThread.jsx'
 import Loader from '../components/common/Loader.jsx'
 import ProductGallery from '../components/seller/ProductGallery.jsx'
 import { sellerService } from '../services/sellerService.js'
 import { useAI } from '../hooks/useAI.js'
 import { validateBuyerMessage } from '../utils/validator.js'
 import { formatCurrency } from '../utils/formatter.js'
+import { getFollowUpSuggestions, DEFAULT_SUGGESTIONS } from '../utils/followUpSuggestions.js'
 
 export default function BuyerAnalyzer() {
   // Marketplace-wide listing: any seller, not just ones you own — a "buyer"
@@ -20,7 +18,7 @@ export default function BuyerAnalyzer() {
   const [marketplaceError, setMarketplaceError] = useState(null)
   const [selectedSellerId, setSelectedSellerId] = useState('')
 
-  const { result, loading, error, analyze } = useAI()
+  const { turns, loading, error, analyze, reset } = useAI()
   const [validationError, setValidationError] = useState(null)
 
   useEffect(() => {
@@ -34,6 +32,12 @@ export default function BuyerAnalyzer() {
   }, [])
 
   const selectedSeller = marketplace.find((s) => s.id === selectedSellerId)
+
+  // Talking to a different seller starts a fresh conversation.
+  const handleSellerChange = (id) => {
+    setSelectedSellerId(id)
+    reset()
+  }
 
   const handleAnalyze = async (message) => {
     const errors = validateBuyerMessage(selectedSellerId, message)
@@ -49,12 +53,15 @@ export default function BuyerAnalyzer() {
     }
   }
 
+  const lastTurn = turns[turns.length - 1]
+  const suggestions = lastTurn ? getFollowUpSuggestions(lastTurn.analysis) : DEFAULT_SUGGESTIONS
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-slate-900">Buyer message analyzer</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Browse any seller's listing, paste a buyer message, and let Gemini draft the reply.
+          Browse any seller's listing, chat with Gemini as the buyer, and get replies drafted turn by turn.
         </p>
       </div>
 
@@ -76,7 +83,7 @@ export default function BuyerAnalyzer() {
               id="sellerSelect"
               className="input-field sm:max-w-xs"
               value={selectedSellerId}
-              onChange={(e) => setSelectedSellerId(e.target.value)}
+              onChange={(e) => handleSellerChange(e.target.value)}
             >
               {marketplace.map((s) => (
                 <option key={s.id} value={s.id}>{s.productName} — {s.name}</option>
@@ -109,21 +116,17 @@ export default function BuyerAnalyzer() {
         </div>
       )}
 
-      <MessageInput onSubmit={handleAnalyze} loading={loading} error={validationError} />
+      {turns.length > 0 && <ChatThread turns={turns} />}
+
+      <MessageInput
+        onSubmit={handleAnalyze}
+        loading={loading}
+        error={validationError}
+        suggestions={suggestions}
+      />
 
       {loading && <Loader label="Gemini is reading the message…" className="justify-center py-8" />}
       {error && <p className="text-sm text-rose-600">{error}</p>}
-
-      {result && (
-        <div className="space-y-6 animate-in">
-          <AIResponseCard reply={result.analysis.suggestedReply} />
-          <div className="grid sm:grid-cols-2 gap-5">
-            <IntentCard analysis={result.analysis} />
-            <RuleViolationCard analysis={result.analysis} />
-          </div>
-          <EntityCard analysis={result.analysis} />
-        </div>
-      )}
     </div>
   )
 }
