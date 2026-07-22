@@ -1,16 +1,19 @@
 package com.marketreply.prompt;
 
+import com.marketreply.dto.ChatTurnDTO;
 import com.marketreply.model.Seller;
 import com.marketreply.model.SellerRule;
 
+import java.util.List;
+
 /**
  * Assembles the final prompt text sent to Gemini by combining the fixed
- * system role and output contract with the seller's product/rules and the
- * buyer's message.
+ * system role and output contract with the seller's product/rules, any
+ * prior turns in this conversation, and the buyer's latest message.
  */
 public class PromptBuilder {
 
-    public PromptTemplate build(Seller seller, String buyerMessage) {
+    public PromptTemplate build(Seller seller, String buyerMessage, List<ChatTurnDTO> history) {
         StringBuilder sb = new StringBuilder();
         sb.append(PromptConstants.SYSTEM_ROLE).append("\n\n");
 
@@ -40,13 +43,25 @@ public class PromptBuilder {
             sb.append("No specific rules provided; use reasonable, polite defaults.\n");
         }
 
-        sb.append("\nBUYER MESSAGE\n\"").append(buyerMessage).append("\"\n\n");
+        if (history != null && !history.isEmpty()) {
+            sb.append("\nCONVERSATION SO FAR (oldest first)\n");
+            for (ChatTurnDTO turn : history) {
+                sb.append("Buyer: ").append(nullSafe(turn.getBuyerMessage())).append("\n");
+                if (turn.getSuggestedReply() != null && !turn.getSuggestedReply().isBlank()) {
+                    sb.append("Seller: ").append(turn.getSuggestedReply()).append("\n");
+                }
+            }
+        }
+
+        sb.append("\nBUYER'S LATEST MESSAGE\n\"").append(buyerMessage).append("\"\n\n");
         sb.append("TASK\n");
-        sb.append("1. Identify the buyer's primary intent.\n");
-        sb.append("2. Extract any offered price, requested payment method, delivery/pickup request, and timing.\n");
+        sb.append("1. Identify the buyer's primary intent for this latest message.\n");
+        sb.append("2. Extract any offered price, requested payment method, delivery/pickup request, and timing ");
+        sb.append("mentioned in the latest message (reuse earlier details from the conversation only if the buyer ");
+        sb.append("is clearly still referring to them).\n");
         sb.append("3. Compare the request against the seller's rules and list any violations.\n");
-        sb.append("4. Write a short, polite, professional reply (2-4 sentences) in the seller's voice that ");
-        sb.append("addresses the buyer's request, honors the rules, and moves the sale forward. ");
+        sb.append("4. Write a short, polite, professional reply (2-4 sentences) in the seller's voice that continues ");
+        sb.append("the conversation naturally — don't repeat information already given earlier in the thread. ");
         sb.append("If the offer violates a rule (e.g. price below minimum), politely counter rather than accept.\n\n");
         sb.append(PromptConstants.OUTPUT_CONTRACT);
 

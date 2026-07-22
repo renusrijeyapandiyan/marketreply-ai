@@ -2,17 +2,21 @@ import { useState, useCallback } from 'react'
 import { aiService } from '../services/aiService.js'
 
 export function useAI() {
-  const [result, setResult] = useState(null)
+  const [turns, setTurns] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   const analyze = useCallback(async (sellerId, message) => {
     setLoading(true)
     setError(null)
-    setResult(null)
     try {
-      const data = await aiService.analyze(sellerId, message)
-      setResult(data)
+      const history = turns.map((t) => ({
+        buyerMessage: t.buyerMessage,
+        suggestedReply: t.analysis.suggestedReply,
+      }))
+      const data = await aiService.analyze(sellerId, message, history)
+      const turn = { id: data.id ?? `${Date.now()}-${turns.length}`, buyerMessage: message, analysis: data.analysis }
+      setTurns((prev) => [...prev, turn])
       return data
     } catch (err) {
       setError(err.message)
@@ -20,7 +24,12 @@ export function useAI() {
     } finally {
       setLoading(false)
     }
+  }, [turns])
+
+  const reset = useCallback(() => {
+    setTurns([])
+    setError(null)
   }, [])
 
-  return { result, loading, error, analyze, setResult }
+  return { turns, loading, error, analyze, reset }
 }

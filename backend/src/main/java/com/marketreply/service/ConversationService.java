@@ -1,6 +1,7 @@
 package com.marketreply.service;
 
 import com.marketreply.dto.AIResponseDTO;
+import com.marketreply.dto.ChatTurnDTO;
 import com.marketreply.dto.ConversationDTO;
 import com.marketreply.dto.DashboardDTO;
 import com.marketreply.exception.ResourceNotFoundException;
@@ -19,16 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Handles the end-to-end "analyze a buyer message" flow: runs the AI
- * analysis, persists the conversation, and exposes history/dashboard reads.
- *
- * Any authenticated user can message any seller in the marketplace (they're
- * acting as a "buyer" in that moment). History and dashboard reflect two
- * different vantage points for the same user:
- *  - as a SELLER: conversations sent to listings they own
- *  - as a BUYER: conversations they personally sent to any seller
- */
 @Service
 public class ConversationService {
 
@@ -44,12 +35,17 @@ public class ConversationService {
         this.aiAnalysisService = aiAnalysisService;
     }
 
-    /** buyerId is whichever authenticated user is sending the message right now. */
-    public AIResponseDTO analyzeAndSave(String buyerId, String sellerId, String buyerMessage) {
+    /**
+     * buyerId is whichever authenticated user is sending the message right now.
+     * history is prior turns in this chat, used only to give Gemini context —
+     * buyerMessage saved below is always just the current message, so History
+     * and Dashboard stay clean regardless of how long the chat gets.
+     */
+    public AIResponseDTO analyzeAndSave(String buyerId, String sellerId, String buyerMessage, List<ChatTurnDTO> history) {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + sellerId));
 
-        AIAnalysis analysis = aiAnalysisService.analyze(seller, buyerMessage);
+        AIAnalysis analysis = aiAnalysisService.analyze(seller, buyerMessage, history);
 
         Conversation conversation = new Conversation();
         conversation.setSellerId(sellerId);
@@ -63,12 +59,6 @@ public class ConversationService {
         return new AIResponseDTO(saved.getId(), analysis);
     }
 
-    /**
-     * Returns every conversation the current user has visibility into: ones sent
-     * to a listing they own, plus ones they personally sent as a buyer.
-     * An optional sellerId narrows it to just that listing (still respecting
-     * the same visibility rule).
-     */
     public List<ConversationDTO> getHistory(String userId, String sellerId) {
         Set<String> ownedSellerIds = ownedSellerIds(userId);
 
@@ -96,7 +86,6 @@ public class ConversationService {
         return DTOMapper.toDTO(conversation, resolveSellerName(conversation.getSellerId(), new HashMap<>()));
     }
 
-    /** Dashboard reflects the user's view as a SELLER: activity on listings they own. */
     public DashboardDTO getDashboard(String ownerId) {
         Set<String> ownedSellerIds = ownedSellerIds(ownerId);
 

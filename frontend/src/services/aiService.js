@@ -1,6 +1,6 @@
 import api from './api.js'
 
 export const aiService = {
-  analyze: (sellerId, message) =>
-    api.post('/ai/analyze', { sellerId, message }).then((res) => res.data),
+  analyze: (sellerId, message, history = []) =>
+    api.post('/ai/analyze', { sellerId, message, history }).then((res) => res.data),
 }
