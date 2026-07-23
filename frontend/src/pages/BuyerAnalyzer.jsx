@@ -95,13 +95,12 @@ export default function BuyerAnalyzer() {
               ))}
             </select>
             {selectedSeller && (
-              <span className="text-sm text-slate-400">
-                Listed at {formatCurrency(selectedSeller.listedPrice)}
-                {selectedSeller.rules?.minPrice != null && ` · min ${formatCurrency(selectedSeller.rules.minPrice)}`}
-                {selectedSeller.productSize === 'CUSTOMIZE' && ' · customizable size'}
-                {selectedSeller.productSize && selectedSeller.productSize !== 'CUSTOMIZE' && ` · size ${selectedSeller.productSize}`}
-              </span>
-            )}
+                <span className="text-sm text-slate-400">
+                    Listed at {formatCurrency(selectedSeller.listedPrice)}
+                    {selectedSeller.productSize === 'CUSTOMIZE' && ' · customizable size'}
+                    {selectedSeller.productSize && selectedSeller.productSize !== 'CUSTOMIZE' && ` · size ${selectedSeller.productSize}`}
+                </span>
+          )}
           </>
         )}
       </div>

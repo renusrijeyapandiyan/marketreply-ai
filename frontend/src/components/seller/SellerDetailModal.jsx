@@ -63,7 +63,6 @@ export default function SellerDetailModal({ seller, onClose }) {
 
           <div className="mt-4 rounded-xl bg-slate-50 px-4">
             <Row icon={Gauge} label="Listed price" value={formatCurrency(seller.listedPrice)} />
-            <Row icon={Gauge} label="Minimum acceptable price" value={formatCurrency(rules.minPrice)} />
             <Row
               icon={Ruler}
               label="Size"

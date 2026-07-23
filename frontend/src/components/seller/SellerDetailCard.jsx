@@ -43,7 +43,6 @@ export default function SellerDetailCard({ seller, onViewDetails }) {
             {seller.productSize === 'CUSTOMIZE' ? 'Customizable size' : `Size ${seller.productSize}`}
           </span>
         )}
-        {rules.minPrice != null && <span className="badge-neutral">Min {formatCurrency(rules.minPrice)}</span>}
         {rules.deliveryAvailable && (
           <span className="badge-neutral flex items-center gap-1">
             <Truck className="h-3 w-3" /> Delivery
