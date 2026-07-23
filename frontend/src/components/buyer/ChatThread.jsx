@@ -2,8 +2,8 @@ import AIResponseCard from './AIResponseCard.jsx'
 import IntentCard from './IntentCard.jsx'
 import EntityCard from './EntityCard.jsx'
 import RuleViolationCard from './RuleViolationCard.jsx'
+import OrderConfirmedBanner from './OrderConfirmedBanner.jsx'
 
-/** Renders the ongoing buyer/seller exchange as a scrolling thread, oldest first. */
 export default function ChatThread({ turns }) {
   return (
     <div className="space-y-8">
@@ -16,6 +16,8 @@ export default function ChatThread({ turns }) {
           </div>
 
           <AIResponseCard reply={turn.analysis.suggestedReply} />
+
+          {turn.orderId && <OrderConfirmedBanner analysis={turn.analysis} />}
 
           <div className="grid sm:grid-cols-2 gap-5">
             <IntentCard analysis={turn.analysis} />

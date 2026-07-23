@@ -2,14 +2,11 @@ package com.marketreply.dto;
 
 import com.marketreply.model.AIAnalysis;
 
-/**
- * Response returned to the frontend after Gemini analyzes a buyer message:
- * the structured analysis plus the persisted conversation id.
- */
 public class AIResponseDTO {
 
     private String conversationId;
     private AIAnalysis analysis;
+    private String orderId;
 
     public AIResponseDTO() {
     }
@@ -17,6 +14,12 @@ public class AIResponseDTO {
     public AIResponseDTO(String conversationId, AIAnalysis analysis) {
         this.conversationId = conversationId;
         this.analysis = analysis;
+    }
+
+    public AIResponseDTO(String conversationId, AIAnalysis analysis, String orderId) {
+        this.conversationId = conversationId;
+        this.analysis = analysis;
+        this.orderId = orderId;
     }
 
     public String getConversationId() {
@@ -33,5 +36,13 @@ public class AIResponseDTO {
 
     public void setAnalysis(AIAnalysis analysis) {
         this.analysis = analysis;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }

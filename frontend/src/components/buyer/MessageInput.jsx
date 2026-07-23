@@ -3,14 +3,13 @@ import Button from '../common/Button.jsx'
 import { Send } from 'lucide-react'
 import { DEFAULT_SUGGESTIONS } from '../../utils/followUpSuggestions.js'
 
-export default function MessageInput({ onSubmit, loading, error, suggestions }) {
-  const [message, setMessage] = useState('')
+export default function MessageInput({ onSubmit, loading, error, suggestions, initialMessage }) {
+  const [message, setMessage] = useState(initialMessage || '')
   const chips = suggestions && suggestions.length > 0 ? suggestions : DEFAULT_SUGGESTIONS
 
-  // Clear the draft after each successful send so the box is ready for the next turn.
   useEffect(() => {
-    if (!loading) setMessage((m) => m)
-  }, [loading])
+    if (initialMessage) setMessage(initialMessage)
+  }, [initialMessage])
 
   const handleSubmit = (e) => {
     e.preventDefault()

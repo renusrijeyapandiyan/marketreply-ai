@@ -7,11 +7,6 @@ import com.marketreply.util.JsonUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Parses the raw text Gemini returns (expected to be a JSON object matching
- * PromptConstants.OUTPUT_CONTRACT) into an AIAnalysis object, tolerating
- * missing fields and minor formatting quirks.
- */
 public class GeminiJsonParser {
 
     public AIAnalysis parse(String rawText) {
@@ -30,16 +25,18 @@ public class GeminiJsonParser {
             analysis.setRuleViolations(toList(root.get("ruleViolations")));
             analysis.setCompliesWithRules(root.hasNonNull("compliesWithRules") && root.get("compliesWithRules").asBoolean());
             analysis.setSentiment(root.hasNonNull("sentiment") ? root.get("sentiment").asText() : "NEUTRAL");
+            analysis.setOrderReady(root.hasNonNull("orderReady") && root.get("orderReady").asBoolean());
+            analysis.setDeliveryAddress(textOrNull(root, "deliveryAddress"));
             analysis.setSuggestedReply(textOrNull(root, "suggestedReply"));
 
             return analysis;
         } catch (Exception e) {
-            // Fall back gracefully so a single malformed AI response never 500s the API.
             AIAnalysis fallback = new AIAnalysis();
             fallback.setIntent("OTHER");
             fallback.setRequestedDeliveryMethod("UNSPECIFIED");
             fallback.setSentiment("NEUTRAL");
             fallback.setCompliesWithRules(false);
+            fallback.setOrderReady(false);
             fallback.setExtractedEntities(new ArrayList<>());
             fallback.setRuleViolations(List.of("Could not parse AI response: " + e.getMessage()));
             fallback.setSuggestedReply(

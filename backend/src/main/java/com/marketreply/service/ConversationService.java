@@ -8,6 +8,7 @@ import com.marketreply.exception.ResourceNotFoundException;
 import com.marketreply.mapper.DTOMapper;
 import com.marketreply.model.AIAnalysis;
 import com.marketreply.model.Conversation;
+import com.marketreply.model.Order;
 import com.marketreply.model.Seller;
 import com.marketreply.repository.ConversationRepository;
 import com.marketreply.repository.SellerRepository;
@@ -26,21 +27,18 @@ public class ConversationService {
     private final ConversationRepository conversationRepository;
     private final SellerRepository sellerRepository;
     private final AIAnalysisService aiAnalysisService;
+    private final OrderService orderService;
 
     public ConversationService(ConversationRepository conversationRepository,
                                 SellerRepository sellerRepository,
-                                AIAnalysisService aiAnalysisService) {
+                                AIAnalysisService aiAnalysisService,
+                                OrderService orderService) {
         this.conversationRepository = conversationRepository;
         this.sellerRepository = sellerRepository;
         this.aiAnalysisService = aiAnalysisService;
+        this.orderService = orderService;
     }
 
-    /**
-     * buyerId is whichever authenticated user is sending the message right now.
-     * history is prior turns in this chat, used only to give Gemini context —
-     * buyerMessage saved below is always just the current message, so History
-     * and Dashboard stay clean regardless of how long the chat gets.
-     */
     public AIResponseDTO analyzeAndSave(String buyerId, String sellerId, String buyerMessage, List<ChatTurnDTO> history) {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Seller not found: " + sellerId));
@@ -56,7 +54,14 @@ public class ConversationService {
         conversation.setCreatedAt(Instant.now());
 
         Conversation saved = conversationRepository.save(conversation);
-        return new AIResponseDTO(saved.getId(), analysis);
+
+        String orderId = null;
+        if (Boolean.TRUE.equals(analysis.getOrderReady())) {
+            Order order = orderService.createFromConversation(buyerId, sellerId, saved.getId(), seller, analysis);
+            orderId = order.getId();
+        }
+
+        return new AIResponseDTO(saved.getId(), analysis, orderId);
     }
 
     public List<ConversationDTO> getHistory(String userId, String sellerId) {

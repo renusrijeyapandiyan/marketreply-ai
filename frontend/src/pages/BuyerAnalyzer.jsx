@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Store } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Store, ImageOff } from 'lucide-react'
 import MessageInput from '../components/buyer/MessageInput.jsx'
 import ChatThread from '../components/buyer/ChatThread.jsx'
 import Loader from '../components/common/Loader.jsx'
-import ProductGallery from '../components/seller/ProductGallery.jsx'
 import { sellerService } from '../services/sellerService.js'
 import { useAI } from '../hooks/useAI.js'
 import { validateBuyerMessage } from '../utils/validator.js'
@@ -11,8 +11,10 @@ import { formatCurrency } from '../utils/formatter.js'
 import { getFollowUpSuggestions, DEFAULT_SUGGESTIONS } from '../utils/followUpSuggestions.js'
 
 export default function BuyerAnalyzer() {
-  // Marketplace-wide listing: any seller, not just ones you own — a "buyer"
-  // browses everyone's products here and picks one to message.
+  const [searchParams] = useSearchParams()
+  const sellerIdFromUrl = searchParams.get('sellerId')
+  const autoMessage = searchParams.get('autoMessage') || ''
+
   const [marketplace, setMarketplace] = useState([])
   const [marketplaceLoading, setMarketplaceLoading] = useState(true)
   const [marketplaceError, setMarketplaceError] = useState(null)
@@ -25,15 +27,18 @@ export default function BuyerAnalyzer() {
     sellerService.marketplace()
       .then((data) => {
         setMarketplace(data)
-        if (data.length > 0) setSelectedSellerId(data[0].id)
+        const preferred = sellerIdFromUrl && data.some((s) => s.id === sellerIdFromUrl)
+          ? sellerIdFromUrl
+          : data[0]?.id
+        if (preferred) setSelectedSellerId(preferred)
       })
       .catch((e) => setMarketplaceError(e.message))
       .finally(() => setMarketplaceLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const selectedSeller = marketplace.find((s) => s.id === selectedSellerId)
 
-  // Talking to a different seller starts a fresh conversation.
   const handleSellerChange = (id) => {
     setSelectedSellerId(id)
     reset()
@@ -104,8 +109,14 @@ export default function BuyerAnalyzer() {
       {selectedSeller && (
         <div className="card p-5">
           <p className="text-xs uppercase tracking-wide text-slate-400 mb-3">Product details</p>
-          <div className="grid sm:grid-cols-[220px_1fr] gap-5">
-            <ProductGallery images={selectedSeller.productImages} alt={selectedSeller.productName} />
+          <div className="flex gap-5">
+            <div className="h-24 w-24 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
+              {selectedSeller.thumbnailImage ? (
+                <img src={selectedSeller.thumbnailImage} alt={selectedSeller.productName} className="h-full w-full object-cover" />
+              ) : (
+                <ImageOff className="h-6 w-6 text-slate-300" />
+              )}
+            </div>
             <div>
               <p className="font-display font-semibold text-slate-900">{selectedSeller.productName}</p>
               {selectedSeller.productDescription && (
@@ -123,6 +134,7 @@ export default function BuyerAnalyzer() {
         loading={loading}
         error={validationError}
         suggestions={suggestions}
+        initialMessage={autoMessage}
       />
 
       {loading && <Loader label="Gemini is reading the message…" className="justify-center py-8" />}

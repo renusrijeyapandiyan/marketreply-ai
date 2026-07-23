@@ -15,7 +15,12 @@ export function useAI() {
         suggestedReply: t.analysis.suggestedReply,
       }))
       const data = await aiService.analyze(sellerId, message, history)
-      const turn = { id: data.id ?? `${Date.now()}-${turns.length}`, buyerMessage: message, analysis: data.analysis }
+      const turn = {
+        id: data.conversationId ?? `${Date.now()}-${turns.length}`,
+        buyerMessage: message,
+        analysis: data.analysis,
+        orderId: data.orderId ?? null,
+      }
       setTurns((prev) => [...prev, turn])
       return data
     } catch (err) {

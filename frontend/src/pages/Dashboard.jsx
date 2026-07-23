@@ -4,6 +4,7 @@ import StatsCard from '../components/dashboard/StatsCard.jsx'
 import AnalyticsChart from '../components/dashboard/AnalyticsChart.jsx'
 import RecentMessages from '../components/dashboard/RecentMessages.jsx'
 import QuickActions from '../components/dashboard/QuickActions.jsx'
+import OrdersPanel from '../components/dashboard/OrdersPanel.jsx'
 import Loader from '../components/common/Loader.jsx'
 import { historyService } from '../services/historyService.js'
 
@@ -45,6 +46,8 @@ export default function Dashboard() {
         </div>
         <QuickActions />
       </div>
+
+      <OrdersPanel />
     </div>
   )
 }

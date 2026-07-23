@@ -2,6 +2,7 @@ package com.marketreply.mapper;
 
 import com.marketreply.dto.ConversationDTO;
 import com.marketreply.dto.SellerDTO;
+import com.marketreply.dto.SellerSummaryDTO;
 import com.marketreply.model.Conversation;
 import com.marketreply.model.Seller;
 
@@ -38,6 +39,24 @@ public class DTOMapper {
         dto.setListedPrice(seller.getListedPrice());
         dto.setProductSize(seller.getProductSize());
         dto.setProductImages(seller.getProductImages());
+        dto.setRules(seller.getRules());
+        return dto;
+    }
+
+    /** Used for marketplace/browse listings — one thumbnail instead of the full photo array. */
+    public static SellerSummaryDTO toSummaryDTO(Seller seller) {
+        SellerSummaryDTO dto = new SellerSummaryDTO();
+        dto.setId(seller.getId());
+        dto.setName(seller.getName());
+        dto.setEmail(seller.getEmail());
+        dto.setProductName(seller.getProductName());
+        dto.setProductDescription(seller.getProductDescription());
+        dto.setListedPrice(seller.getListedPrice());
+        dto.setProductSize(seller.getProductSize());
+        dto.setThumbnailImage(
+                seller.getProductImages() != null && !seller.getProductImages().isEmpty()
+                        ? seller.getProductImages().get(0)
+                        : null);
         dto.setRules(seller.getRules());
         return dto;
     }

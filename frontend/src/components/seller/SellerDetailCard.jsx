@@ -1,9 +1,18 @@
-import { Truck, MapPin, CreditCard, Gauge, Mail, ImageOff } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Truck, MapPin, CreditCard, Gauge, Mail, ImageOff, MessageCircle, ShoppingBag } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatter.js'
 
 export default function SellerDetailCard({ seller, onViewDetails }) {
+  const navigate = useNavigate()
   const rules = seller.rules || {}
-  const thumbnail = seller.productImages?.[0]
+  const thumbnail = seller.thumbnailImage
+
+  const goToChat = (e, autoMessage) => {
+    e.stopPropagation()
+    const params = new URLSearchParams({ sellerId: seller.id })
+    if (autoMessage) params.set('autoMessage', autoMessage)
+    navigate(`/buyer-analyzer?${params.toString()}`)
+  }
 
   return (
     <div className="card card-hover p-5 flex flex-col">
@@ -66,6 +75,23 @@ export default function SellerDetailCard({ seller, onViewDetails }) {
       >
         View full details →
       </button>
+
+      <div className="grid grid-cols-2 gap-2 mt-3">
+        <button
+          type="button"
+          onClick={(e) => goToChat(e)}
+          className="flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg border border-slate-200 py-2 text-slate-600 hover:border-brand-300 hover:text-brand-700"
+        >
+          <MessageCircle className="h-3.5 w-3.5" /> Chat
+        </button>
+        <button
+          type="button"
+          onClick={(e) => goToChat(e, "I'd like to buy this at the listed price.")}
+          className="flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg bg-brand-600 py-2 text-white hover:bg-brand-700"
+        >
+          <ShoppingBag className="h-3.5 w-3.5" /> Buy now
+        </button>
+      </div>
     </div>
   )
 }

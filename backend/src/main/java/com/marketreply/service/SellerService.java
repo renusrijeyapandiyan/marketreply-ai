@@ -1,6 +1,7 @@
 package com.marketreply.service;
 
 import com.marketreply.dto.SellerDTO;
+import com.marketreply.dto.SellerSummaryDTO;
 import com.marketreply.exception.InvalidRequestException;
 import com.marketreply.exception.ResourceNotFoundException;
 import com.marketreply.mapper.DTOMapper;
@@ -11,11 +12,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * CRUD operations for seller profiles and their negotiation rules.
- * Every profile belongs to exactly one authenticated user (ownerId); all
- * reads/writes are scoped so users only ever see their own profiles.
- */
 @Service
 public class SellerService {
 
@@ -60,7 +56,6 @@ public class SellerService {
         return DTOMapper.toDTO(getOwnedSellerOrThrow(ownerId, id));
     }
 
-    /** Used internally by AI/conversation flows, which only need the entity. */
     public Seller getSellerEntity(String ownerId, String id) {
         return getOwnedSellerOrThrow(ownerId, id);
     }
@@ -69,9 +64,9 @@ public class SellerService {
         return sellerRepository.findByOwnerId(ownerId).stream().map(DTOMapper::toDTO).toList();
     }
 
-    /** Public marketplace listing: every seller profile, regardless of owner, for buyers to browse. */
-    public List<SellerDTO> getMarketplaceSellers() {
-        return sellerRepository.findAll().stream().map(DTOMapper::toDTO).toList();
+    /** Public marketplace listing: every seller, one thumbnail each — fast to load regardless of how many photos sellers upload. */
+    public List<SellerSummaryDTO> getMarketplaceSellers() {
+        return sellerRepository.findAll().stream().map(DTOMapper::toSummaryDTO).toList();
     }
 
     public void deleteSeller(String ownerId, String id) {
@@ -79,7 +74,6 @@ public class SellerService {
         sellerRepository.delete(existing);
     }
 
-    /** Defensive server-side check backing the frontend's 10-photo limit. */
     private void validateImageCount(SellerDTO dto) {
         if (dto.getProductImages() != null && dto.getProductImages().size() > SellerDTO.MAX_PRODUCT_IMAGES) {
             throw new InvalidRequestException(

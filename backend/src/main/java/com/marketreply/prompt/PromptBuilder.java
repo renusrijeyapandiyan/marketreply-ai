@@ -6,11 +6,6 @@ import com.marketreply.model.SellerRule;
 
 import java.util.List;
 
-/**
- * Assembles the final prompt text sent to Gemini by combining the fixed
- * system role and output contract with the seller's product/rules, any
- * prior turns in this conversation, and the buyer's latest message.
- */
 public class PromptBuilder {
 
     public PromptTemplate build(Seller seller, String buyerMessage, List<ChatTurnDTO> history) {
@@ -62,7 +57,14 @@ public class PromptBuilder {
         sb.append("3. Compare the request against the seller's rules and list any violations.\n");
         sb.append("4. Write a short, polite, professional reply (2-4 sentences) in the seller's voice that continues ");
         sb.append("the conversation naturally — don't repeat information already given earlier in the thread. ");
-        sb.append("If the offer violates a rule (e.g. price below minimum), politely counter rather than accept.\n\n");
+        sb.append("If the offer violates a rule (e.g. price below minimum), politely counter rather than accept.\n");
+        sb.append("5. Set orderReady to true ONLY if the buyer has just given a clear, unambiguous confirmation to ");
+        sb.append("purchase under terms that comply with the seller's rules (e.g. \"I'll take it\", \"yes, let's do it\", ");
+        sb.append("\"confirmed, I'll pay now\"). Do NOT set it true just because a price was mentioned or discussed — ");
+        sb.append("only on explicit confirmation. If terms do not comply with the rules, orderReady must be false ");
+        sb.append("even if the buyer says yes.\n");
+        sb.append("6. If the buyer has given a delivery address at any point in this conversation, extract it into ");
+        sb.append("deliveryAddress; otherwise null.\n\n");
         sb.append(PromptConstants.OUTPUT_CONTRACT);
 
         return new PromptTemplate(sb.toString());

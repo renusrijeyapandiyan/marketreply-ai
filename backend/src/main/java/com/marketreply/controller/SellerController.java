@@ -1,6 +1,7 @@
 package com.marketreply.controller;
 
 import com.marketreply.dto.SellerDTO;
+import com.marketreply.dto.SellerSummaryDTO;
 import com.marketreply.service.SellerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -10,11 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * CRUD endpoints for seller profiles and their negotiation rules.
- * Every request is scoped to the authenticated user via the "authUserId"
- * request attribute set by JwtAuthFilter.
- */
 @RestController
 @RequestMapping("/api/sellers")
 public class SellerController {
@@ -48,12 +44,12 @@ public class SellerController {
     }
 
     /**
-     * Public marketplace: every seller's listing, for any logged-in user to browse
-     * and pick one to message via the Buyer Analyzer. Declared before "/{id}" so
+     * Public marketplace: every seller's listing (lightweight — one thumbnail
+     * each), for any logged-in user to browse. Declared before "/{id}" so
      * Spring matches this exact literal path first.
      */
     @GetMapping("/marketplace")
-    public ResponseEntity<List<SellerDTO>> getMarketplaceSellers() {
+    public ResponseEntity<List<SellerSummaryDTO>> getMarketplaceSellers() {
         return ResponseEntity.ok(sellerService.getMarketplaceSellers());
     }
 
