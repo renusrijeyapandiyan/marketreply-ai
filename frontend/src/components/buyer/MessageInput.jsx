@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import Button from '../common/Button.jsx'
 import { Send } from 'lucide-react'
-import { DEFAULT_SUGGESTIONS } from '../../utils/followUpSuggestions.js'
 
-export default function MessageInput({ onSubmit, loading, error, suggestions, initialMessage }) {
-  const [message, setMessage] = useState(initialMessage || '')
-  const chips = suggestions && suggestions.length > 0 ? suggestions : DEFAULT_SUGGESTIONS
+const SAMPLE_MESSAGES = [
+  'Can you sell it for ₹500 and deliver today?',
+  'Is this still available? I can pick it up tomorrow evening.',
+  'I can pay via bank transfer, will you accept ₹1000 less than listed?',
+]
+
+export default function MessageInput({ onSubmit, loading, error, initialMessage = '' }) {
+  const [message, setMessage] = useState(initialMessage)
 
   useEffect(() => {
     if (initialMessage) setMessage(initialMessage)
@@ -13,17 +17,12 @@ export default function MessageInput({ onSubmit, loading, error, suggestions, in
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (message.trim()) {
-      onSubmit(message.trim())
-      setMessage('')
-    }
+    if (message.trim()) onSubmit(message.trim())
   }
 
   return (
     <form onSubmit={handleSubmit} className="card p-6">
-      <label htmlFor="buyerMessage" className="label">
-        {chips === DEFAULT_SUGGESTIONS ? 'Buyer message' : 'Continue the conversation'}
-      </label>
+      <label htmlFor="buyerMessage" className="label">Buyer message</label>
       <textarea
         id="buyerMessage"
         rows={4}
@@ -35,7 +34,7 @@ export default function MessageInput({ onSubmit, loading, error, suggestions, in
       {error && <p className="mt-1.5 text-xs text-rose-600">{error}</p>}
 
       <div className="flex flex-wrap gap-2 mt-3">
-        {chips.map((sample) => (
+        {SAMPLE_MESSAGES.map((sample) => (
           <button
             type="button"
             key={sample}
@@ -50,7 +49,7 @@ export default function MessageInput({ onSubmit, loading, error, suggestions, in
       <div className="flex justify-end mt-5">
         <Button type="submit" disabled={loading || !message.trim()}>
           <Send className="h-4 w-4" />
-          {loading ? 'Analyzing with Gemini…' : 'Send'}
+          {loading ? 'Analyzing with Gemini…' : 'Analyze message'}
         </Button>
       </div>
     </form>

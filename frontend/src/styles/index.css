@@ -7,10 +7,10 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-slate-50 text-slate-900 font-body antialiased;
+    @apply bg-stone-50 text-slate-900 font-body antialiased;
   }
   h1, h2, h3, h4 {
-    @apply font-display text-slate-900;
+    @apply font-display text-slate-900 tracking-tight;
   }
   :focus-visible {
     @apply outline outline-2 outline-offset-2 outline-brand-500;
@@ -19,22 +19,22 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-slate-100 transition-shadow;
+    @apply bg-white rounded-2xl shadow-card border border-slate-100/80 transition-all duration-200;
   }
   .card-hover {
-    @apply hover:shadow-card-hover;
+    @apply hover:shadow-card-hover hover:-translate-y-0.5 hover:border-brand-100;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+    @apply btn bg-brand-gradient text-white shadow-brand-sm hover:shadow-brand hover:brightness-110;
   }
   .btn-secondary {
-    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50;
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300;
   }
   .btn-accent {
-    @apply btn bg-accent-600 text-white hover:bg-accent-700;
+    @apply btn bg-accent-600 text-white shadow-sm hover:bg-accent-700;
   }
   .input-field {
     @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none transition;
@@ -46,15 +46,32 @@
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
   }
   .badge-success {
-    @apply badge bg-accent-50 text-accent-700;
+    @apply badge bg-accent-50 text-accent-700 ring-1 ring-inset ring-accent-100;
   }
   .badge-danger {
-    @apply badge bg-rose-50 text-rose-700;
+    @apply badge bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-100;
   }
   .badge-neutral {
-    @apply badge bg-slate-100 text-slate-600;
+    @apply badge bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/60;
   }
   .badge-brand {
-    @apply badge bg-brand-50 text-brand-700;
+    @apply badge bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-100;
+  }
+  .badge-gold {
+    @apply badge bg-gold-50 text-gold-700 ring-1 ring-inset ring-gold-200;
+  }
+  .surface-brand {
+    @apply bg-brand-gradient-soft;
+  }
+  .text-gradient-brand {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+  /* A card with a thin gradient top edge — used for hero/featured moments. */
+  .card-accent {
+    @apply card relative overflow-hidden;
+  }
+  .card-accent::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1 bg-brand-gradient;
   }
 }

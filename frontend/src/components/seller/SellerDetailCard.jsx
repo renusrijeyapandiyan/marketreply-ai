@@ -1,17 +1,35 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Truck, MapPin, CreditCard, Gauge, Mail, ImageOff, MessageCircle, ShoppingBag } from 'lucide-react'
+import { Truck, MapPin, CreditCard, Gauge, Mail, ImageOff, MessageCircle, ShoppingBag, ShoppingCart, Check } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatter.js'
+import StarRating from '../reviews/StarRating.jsx'
+import { useCart } from '../../hooks/useCart.js'
 
 export default function SellerDetailCard({ seller, onViewDetails }) {
   const navigate = useNavigate()
+  const { addToCart } = useCart()
   const rules = seller.rules || {}
   const thumbnail = seller.thumbnailImage
+  const [adding, setAdding] = useState(false)
+  const [added, setAdded] = useState(false)
 
   const goToChat = (e, autoMessage) => {
     e.stopPropagation()
     const params = new URLSearchParams({ sellerId: seller.id })
     if (autoMessage) params.set('autoMessage', autoMessage)
     navigate(`/buyer-analyzer?${params.toString()}`)
+  }
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation()
+    setAdding(true)
+    try {
+      await addToCart(seller.id, 1)
+      setAdded(true)
+      setTimeout(() => setAdded(false), 1800)
+    } finally {
+      setAdding(false)
+    }
   }
 
   return (
@@ -29,6 +47,9 @@ export default function SellerDetailCard({ seller, onViewDetails }) {
           <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1.5 truncate">
             <Mail className="h-3.5 w-3.5 shrink-0" /> {seller.name} · {seller.email}
           </p>
+          <div className="mt-1">
+            <StarRating value={seller.averageRating || 0} count={seller.reviewCount} />
+          </div>
         </div>
         <span className="badge-brand shrink-0">{formatCurrency(seller.listedPrice)}</span>
       </div>
@@ -75,13 +96,22 @@ export default function SellerDetailCard({ seller, onViewDetails }) {
         View full details →
       </button>
 
-      <div className="grid grid-cols-2 gap-2 mt-3">
+      <div className="grid grid-cols-3 gap-2 mt-3">
         <button
           type="button"
           onClick={(e) => goToChat(e)}
           className="flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg border border-slate-200 py-2 text-slate-600 hover:border-brand-300 hover:text-brand-700"
         >
           <MessageCircle className="h-3.5 w-3.5" /> Chat
+        </button>
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          disabled={adding}
+          className="flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg border border-slate-200 py-2 text-slate-600 hover:border-gold-300 hover:text-gold-700 disabled:opacity-60"
+        >
+          {added ? <Check className="h-3.5 w-3.5" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+          {added ? 'Added' : 'Add to cart'}
         </button>
         <button
           type="button"

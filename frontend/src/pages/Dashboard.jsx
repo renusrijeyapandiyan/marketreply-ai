@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { MessageSquareText, Users, ShieldCheck, ShieldAlert } from 'lucide-react'
+import { MessageSquareText, Package, ShieldCheck, ShieldAlert } from 'lucide-react'
 import StatsCard from '../components/dashboard/StatsCard.jsx'
 import AnalyticsChart from '../components/dashboard/AnalyticsChart.jsx'
 import RecentMessages from '../components/dashboard/RecentMessages.jsx'
-import QuickActions from '../components/dashboard/QuickActions.jsx'
 import OrdersPanel from '../components/dashboard/OrdersPanel.jsx'
+import QuickActions from '../components/dashboard/QuickActions.jsx'
 import Loader from '../components/common/Loader.jsx'
 import { historyService } from '../services/historyService.js'
 
@@ -34,7 +34,7 @@ export default function Dashboard() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard label="Total conversations" value={d.totalConversations ?? 0} icon={MessageSquareText} tone="brand" />
-        <StatsCard label="Seller profiles" value={d.totalSellers ?? 0} icon={Users} tone="slate" />
+        <StatsCard label="Products listed" value={d.totalSellers ?? 0} icon={Package} tone="slate" />
         <StatsCard label="Rule-compliant replies" value={d.ruleCompliantReplies ?? 0} icon={ShieldCheck} tone="accent" />
         <StatsCard label="Needs attention" value={d.ruleViolationReplies ?? 0} icon={ShieldAlert} tone="rose" />
       </div>
@@ -44,10 +44,11 @@ export default function Dashboard() {
           <AnalyticsChart intentBreakdown={d.intentBreakdown} />
           <RecentMessages conversations={d.recentConversations} />
         </div>
-        <QuickActions />
+        <div className="space-y-6">
+          <OrdersPanel />
+          <QuickActions />
+        </div>
       </div>
-
-      <OrdersPanel />
     </div>
   )
 }

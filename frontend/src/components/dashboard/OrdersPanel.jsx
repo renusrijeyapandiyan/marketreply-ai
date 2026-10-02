@@ -3,8 +3,10 @@ import { PackageCheck, Truck, MapPin } from 'lucide-react'
 import Loader from '../common/Loader.jsx'
 import { ordersService } from '../../services/ordersService.js'
 import { formatCurrency } from '../../utils/formatter.js'
+import { useAuth } from '../../hooks/useAuth.js'
 
 export default function OrdersPanel() {
+  const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -29,38 +31,43 @@ export default function OrdersPanel() {
         <p className="text-sm text-rose-600">{error}</p>
       ) : orders.length === 0 ? (
         <p className="text-sm text-slate-400 py-4">
-          No orders yet — they'll appear here automatically once a buyer confirms a purchase in chat.
+          No orders yet — they'll appear here automatically once a buyer places an order in the Buyer Analyzer.
         </p>
       ) : (
         <ul className="divide-y divide-slate-100">
-          {orders.map((o) => (
-            <li key={o.id} className="py-3.5 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-slate-800">{o.productName}</p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {o.role === 'SELLER' ? `Sold by you` : `Bought from ${o.sellerName}`}
-                  {' · '}
-                  {new Date(o.createdAt).toLocaleDateString()}
-                </p>
-                <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-                  {o.deliveryMethod && o.deliveryMethod !== 'UNSPECIFIED' && (
-                    <span className="flex items-center gap-1">
-                      <Truck className="h-3 w-3" /> {o.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Pickup'}
-                    </span>
-                  )}
-                  {o.deliveryAddress && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> {o.deliveryAddress}
-                    </span>
-                  )}
+          {orders.slice(0, 6).map((o) => {
+            const isSeller = o.buyerId !== user?.userId
+            return (
+              <li key={o.id} className="py-3.5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-800">{o.productName}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {isSeller ? `Sold to ${o.buyerName}` : `Bought from ${o.sellerName}`}
+                    {' · '}
+                    {new Date(o.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
+                    {o.deliveryMethod && o.deliveryMethod !== 'UNSPECIFIED' && (
+                      <span className="flex items-center gap-1">
+                        <Truck className="h-3 w-3" /> {o.deliveryMethod === 'DELIVERY' ? 'Delivery' : 'Pickup'}
+                      </span>
+                    )}
+                    {o.deliveryAddress && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> {o.deliveryAddress}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-sm font-semibold text-slate-800">{formatCurrency(o.agreedPrice)}</p>
-                <span className="badge-success mt-1 inline-block">{o.status}</span>
-              </div>
-            </li>
-          ))}
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold text-slate-800">{formatCurrency(o.totalPrice)}</p>
+                  <span className={`mt-1 inline-block ${o.status === 'CANCELLED' ? 'badge-danger' : o.status === 'DELIVERED' ? 'badge-success' : 'badge-brand'}`}>
+                    {o.status}
+                  </span>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

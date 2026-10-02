@@ -46,7 +46,7 @@ export default function ImageUpload({ sellerId, currentImageUrl, onUploaded }) {
 
   if (!sellerId) {
     return (
-      <p className="text-sm text-slate-400">Save this seller profile first, then you can add a product photo.</p>
+      <p className="text-sm text-slate-400">Save this product first, then you can add a photo.</p>
     )
   }
 

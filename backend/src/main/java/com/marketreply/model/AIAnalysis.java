@@ -2,24 +2,22 @@ package com.marketreply.model;
 
 import java.util.List;
 
+/**
+ * The structured result Gemini returns after analyzing a buyer message
+ * against a seller's rules. Embedded inside Conversation.
+ */
 public class AIAnalysis {
 
-    private String intent;
+    private String intent;                 // e.g. NEGOTIATE_PRICE, ASK_DELIVERY, ASK_AVAILABILITY
     private Double offeredPrice;
     private String requestedPaymentMethod;
-    private String requestedDeliveryMethod;
+    private String requestedDeliveryMethod; // DELIVERY, PICKUP, UNSPECIFIED
     private String requestedDeliveryTime;
     private List<String> extractedEntities;
     private List<String> ruleViolations;
     private Boolean compliesWithRules;
-    private String sentiment;
+    private String sentiment;              // POSITIVE, NEUTRAL, NEGATIVE
     private String suggestedReply;
-
-    /** True only when the buyer has just given a clear, explicit purchase confirmation. */
-    private Boolean orderReady;
-
-    /** Buyer's delivery address, if mentioned anywhere in the conversation. */
-    private String deliveryAddress;
 
     public AIAnalysis() {
     }
@@ -102,21 +100,5 @@ public class AIAnalysis {
 
     public void setSuggestedReply(String suggestedReply) {
         this.suggestedReply = suggestedReply;
-    }
-
-    public Boolean getOrderReady() {
-        return orderReady;
-    }
-
-    public void setOrderReady(Boolean orderReady) {
-        this.orderReady = orderReady;
-    }
-
-    public String getDeliveryAddress() {
-        return deliveryAddress;
-    }
-
-    public void setDeliveryAddress(String deliveryAddress) {
-        this.deliveryAddress = deliveryAddress;
     }
 }

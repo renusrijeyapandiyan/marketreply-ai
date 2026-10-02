@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Truck, MapPin, CreditCard, Gauge, Ruler, StickyNote, Mail, MessageCircle, ShoppingBag } from 'lucide-react'
 import Modal from '../common/Modal.jsx'
 import ProductGallery from './ProductGallery.jsx'
+import StarRating from '../reviews/StarRating.jsx'
+import ReviewList from '../reviews/ReviewList.jsx'
 import { sellerService } from '../../services/sellerService.js'
 import { formatCurrency } from '../../utils/formatter.js'
 
@@ -56,6 +58,7 @@ export default function SellerDetailModal({ seller, onClose }) {
           <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-1">
             <Mail className="h-3.5 w-3.5" /> {seller.name} · {seller.email}
           </p>
+          <StarRating value={seller.averageRating || 0} count={seller.reviewCount} size="md" />
 
           {seller.productDescription && (
             <p className="text-sm text-slate-600 mt-3 leading-relaxed">{seller.productDescription}</p>
@@ -82,6 +85,11 @@ export default function SellerDetailModal({ seller, onClose }) {
               value={rules.negotiationStyle ? rules.negotiationStyle.charAt(0) + rules.negotiationStyle.slice(1).toLowerCase() : null}
             />
             <Row icon={StickyNote} label="Additional notes" value={rules.additionalNotes} />
+          </div>
+
+          <div className="mt-5">
+            <p className="text-sm font-semibold text-slate-800 mb-2">Reviews</p>
+            <ReviewList sellerId={seller.id} />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-5">

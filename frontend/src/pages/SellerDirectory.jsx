@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search, Store } from 'lucide-react'
+import { Search, Store, Mail } from 'lucide-react'
 import SellerDetailCard from '../components/seller/SellerDetailCard.jsx'
 import SellerDetailModal from '../components/seller/SellerDetailModal.jsx'
 import Loader from '../components/common/Loader.jsx'
@@ -33,13 +33,28 @@ export default function SellerDirectory() {
     )
   }, [sellers, query])
 
+  // Group product listings by the seller identity (name + email) that owns
+  // them, so one seller with several products shows up as one section
+  // instead of looking like several unrelated sellers.
+  const groups = useMemo(() => {
+    const byIdentity = new Map()
+    for (const listing of filtered) {
+      const key = `${listing.name}|${listing.email}`
+      if (!byIdentity.has(key)) {
+        byIdentity.set(key, { name: listing.name, email: listing.email, listings: [] })
+      }
+      byIdentity.get(key).listings.push(listing)
+    }
+    return Array.from(byIdentity.values()).sort((a, b) => b.listings.length - a.listings.length)
+  }, [filtered])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-display font-bold text-slate-900">All sellers</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Every seller profile and product listing registered in MarketReply AI.
+            Every seller and the products they've listed on MarketReply AI.
           </p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -54,22 +69,41 @@ export default function SellerDirectory() {
       </div>
 
       {loading ? (
-        <Loader label="Loading seller profiles…" className="py-16 justify-center" />
+        <Loader label="Loading sellers…" className="py-16 justify-center" />
       ) : error ? (
         <div className="card p-6 text-sm text-rose-600">{error}</div>
       ) : filtered.length === 0 ? (
         <div className="card p-10 text-center">
           <Store className="h-8 w-8 text-slate-300 mx-auto mb-3" />
           <p className="text-slate-500">
-            {sellers.length === 0 ? 'No seller profiles have been created yet.' : 'No sellers match your search.'}
+            {sellers.length === 0 ? 'No products have been listed yet.' : 'No products match your search.'}
           </p>
         </div>
       ) : (
         <>
-          <p className="text-xs text-slate-400">{filtered.length} of {sellers.length} seller profiles</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((seller) => (
-              <SellerDetailCard key={seller.id} seller={seller} onViewDetails={setSelectedSeller} />
+          <p className="text-xs text-slate-400">
+            {filtered.length} of {sellers.length} products across {groups.length} seller
+            {groups.length === 1 ? '' : 's'}
+          </p>
+
+          <div className="space-y-8">
+            {groups.map((group) => (
+              <div key={`${group.name}|${group.email}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <h2 className="font-display font-semibold text-slate-900">{group.name}</h2>
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Mail className="h-3 w-3" /> {group.email}
+                  </span>
+                  <span className="badge-neutral">
+                    {group.listings.length} product{group.listings.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {group.listings.map((seller) => (
+                    <SellerDetailCard key={seller.id} seller={seller} onViewDetails={setSelectedSeller} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </>

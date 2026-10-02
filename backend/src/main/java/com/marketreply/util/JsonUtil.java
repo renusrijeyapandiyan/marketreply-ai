@@ -3,7 +3,6 @@ package com.marketreply.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-/** Shared, pre-configured Jackson ObjectMapper for the whole app. */
 public final class JsonUtil {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -16,10 +15,6 @@ public final class JsonUtil {
         return MAPPER;
     }
 
-    /**
-     * Gemini sometimes wraps JSON in ```json ... ``` fences despite instructions
-     * not to. Strip those before parsing.
-     */
     public static String stripCodeFences(String text) {
         if (text == null) {
             return null;
@@ -32,5 +27,14 @@ public final class JsonUtil {
             }
         }
         return trimmed.trim();
+    }
+
+    public static String extractJsonObject(String text) {
+        String cleaned = stripCodeFences(text);
+        if (cleaned == null) {
+            return null;
+        }
+        int start = cleaned.indexOf('{');
+        return start >= 0 ? cleaned.substring(start) : cleaned;
     }
 }

@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
-
 /** Endpoint the Buyer Analyzer page calls to get an AI-drafted reply. */
 @RestController
 @RequestMapping("/api/ai")
@@ -28,9 +26,7 @@ public class AIController {
     public ResponseEntity<AIResponseDTO> analyze(@Valid @RequestBody BuyerMessageRequest request,
                                                   HttpServletRequest httpRequest) {
         String ownerId = (String) httpRequest.getAttribute("authUserId");
-        var history = request.getHistory() != null ? request.getHistory() : Collections.<com.marketreply.dto.ChatTurnDTO>emptyList();
-        AIResponseDTO response = conversationService.analyzeAndSave(
-                ownerId, request.getSellerId(), request.getMessage(), history);
+        AIResponseDTO response = conversationService.analyzeAndSave(ownerId, request.getSellerId(), request.getMessage());
         return ResponseEntity.ok(response);
     }
 }

@@ -1,36 +1,45 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Store, ImageOff } from 'lucide-react'
+import { Store } from 'lucide-react'
 import MessageInput from '../components/buyer/MessageInput.jsx'
-import ChatThread from '../components/buyer/ChatThread.jsx'
+import IntentCard from '../components/buyer/IntentCard.jsx'
+import EntityCard from '../components/buyer/EntityCard.jsx'
+import RuleViolationCard from '../components/buyer/RuleViolationCard.jsx'
+import AIResponseCard from '../components/buyer/AIResponseCard.jsx'
+import PlaceOrderCard from '../components/buyer/PlaceOrderCard.jsx'
 import Loader from '../components/common/Loader.jsx'
 import { sellerService } from '../services/sellerService.js'
 import { useAI } from '../hooks/useAI.js'
 import { validateBuyerMessage } from '../utils/validator.js'
 import { formatCurrency } from '../utils/formatter.js'
-import { getFollowUpSuggestions, DEFAULT_SUGGESTIONS } from '../utils/followUpSuggestions.js'
 
 export default function BuyerAnalyzer() {
   const [searchParams] = useSearchParams()
-  const sellerIdFromUrl = searchParams.get('sellerId')
-  const autoMessage = searchParams.get('autoMessage') || ''
 
+  // Marketplace-wide listing: any seller, not just ones you own — a "buyer"
+  // browses everyone's products here and picks one to message.
   const [marketplace, setMarketplace] = useState([])
   const [marketplaceLoading, setMarketplaceLoading] = useState(true)
   const [marketplaceError, setMarketplaceError] = useState(null)
   const [selectedSellerId, setSelectedSellerId] = useState('')
 
-  const { turns, loading, error, analyze, reset } = useAI()
+  const { result, loading, error, analyze } = useAI()
   const [validationError, setValidationError] = useState(null)
+  const [showOrderForm, setShowOrderForm] = useState(false)
 
   useEffect(() => {
     sellerService.marketplace()
       .then((data) => {
         setMarketplace(data)
-        const preferred = sellerIdFromUrl && data.some((s) => s.id === sellerIdFromUrl)
-          ? sellerIdFromUrl
-          : data[0]?.id
-        if (preferred) setSelectedSellerId(preferred)
+        // If we arrived here from a seller card's "Chat"/"Buy now" button, that
+        // link carries ?sellerId=... — honor it instead of defaulting to the
+        // first listing.
+        const requestedId = searchParams.get('sellerId')
+        if (requestedId && data.some((s) => s.id === requestedId)) {
+          setSelectedSellerId(requestedId)
+        } else if (data.length > 0) {
+          setSelectedSellerId(data[0].id)
+        }
       })
       .catch((e) => setMarketplaceError(e.message))
       .finally(() => setMarketplaceLoading(false))
@@ -38,11 +47,11 @@ export default function BuyerAnalyzer() {
   }, [])
 
   const selectedSeller = marketplace.find((s) => s.id === selectedSellerId)
+  const autoMessage = searchParams.get('autoMessage') || ''
 
-  const handleSellerChange = (id) => {
-    setSelectedSellerId(id)
-    reset()
-  }
+  useEffect(() => {
+    setShowOrderForm(false)
+  }, [selectedSellerId])
 
   const handleAnalyze = async (message) => {
     const errors = validateBuyerMessage(selectedSellerId, message)
@@ -58,15 +67,12 @@ export default function BuyerAnalyzer() {
     }
   }
 
-  const lastTurn = turns[turns.length - 1]
-  const suggestions = lastTurn ? getFollowUpSuggestions(lastTurn.analysis) : DEFAULT_SUGGESTIONS
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-display font-bold text-slate-900">Buyer message analyzer</h1>
+        <h1 className="text-2xl font-display font-semibold text-slate-900">Buyer message analyzer</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Browse any seller's listing, chat with Gemini as the buyer, and get replies drafted turn by turn.
+          Browse any seller's listing, paste a buyer message, and let Gemini draft the reply.
         </p>
       </div>
 
@@ -88,56 +94,62 @@ export default function BuyerAnalyzer() {
               id="sellerSelect"
               className="input-field sm:max-w-xs"
               value={selectedSellerId}
-              onChange={(e) => handleSellerChange(e.target.value)}
+              onChange={(e) => setSelectedSellerId(e.target.value)}
             >
               {marketplace.map((s) => (
                 <option key={s.id} value={s.id}>{s.productName} — {s.name}</option>
               ))}
             </select>
             {selectedSeller && (
-                <span className="text-sm text-slate-400">
-                    Listed at {formatCurrency(selectedSeller.listedPrice)}
-                    {selectedSeller.productSize === 'CUSTOMIZE' && ' · customizable size'}
-                    {selectedSeller.productSize && selectedSeller.productSize !== 'CUSTOMIZE' && ` · size ${selectedSeller.productSize}`}
-                </span>
-          )}
+              <span className="text-sm text-slate-400">
+                Listed at {formatCurrency(selectedSeller.listedPrice)}
+                {selectedSeller.rules?.minPrice != null && ` · min ${formatCurrency(selectedSeller.rules.minPrice)}`}
+              </span>
+            )}
+            {selectedSeller && (
+              <button
+                type="button"
+                onClick={() => setShowOrderForm((v) => !v)}
+                className="btn-secondary py-2 px-3.5 text-sm ml-auto"
+              >
+                {showOrderForm ? 'Hide order form' : 'Place an order'}
+              </button>
+            )}
           </>
         )}
       </div>
 
-      {selectedSeller && (
-        <div className="card p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-400 mb-3">Product details</p>
-          <div className="flex gap-5">
-            <div className="h-24 w-24 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
-              {selectedSeller.thumbnailImage ? (
-                <img src={selectedSeller.thumbnailImage} alt={selectedSeller.productName} className="h-full w-full object-cover" />
-              ) : (
-                <ImageOff className="h-6 w-6 text-slate-300" />
-              )}
-            </div>
-            <div>
-              <p className="font-display font-semibold text-slate-900">{selectedSeller.productName}</p>
-              {selectedSeller.productDescription && (
-                <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">{selectedSeller.productDescription}</p>
-              )}
-            </div>
-          </div>
-        </div>
+      <MessageInput onSubmit={handleAnalyze} loading={loading} error={validationError} initialMessage={autoMessage} />
+
+      {loading && <Loader label="AI is reading your message…" className="justify-center py-8" />}
+      {error && <p className="text-sm text-rose-600">{error}</p>}
+
+      {showOrderForm && selectedSeller && (
+        <PlaceOrderCard seller={selectedSeller} conversationId={result?.conversationId} />
       )}
 
-      {turns.length > 0 && <ChatThread turns={turns} />}
+      {result && (
+        <div className="space-y-6 animate-in">
+          <AIResponseCard reply={result.analysis.suggestedReply} />
+          <div className="grid sm:grid-cols-2 gap-5">
+            <IntentCard analysis={result.analysis} />
+            <RuleViolationCard analysis={result.analysis} />
+          </div>
+          <EntityCard analysis={result.analysis} />
 
-      <MessageInput
-        onSubmit={handleAnalyze}
-        loading={loading}
-        error={validationError}
-        suggestions={suggestions}
-        initialMessage={autoMessage}
-      />
-
-      {loading && <Loader label="Gemini is reading the message…" className="justify-center py-8" />}
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+          {!showOrderForm && selectedSeller && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowOrderForm(true)}
+                className="btn-primary"
+              >
+                Ready to buy? Place an order
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

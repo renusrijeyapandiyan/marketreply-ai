@@ -4,8 +4,6 @@ export function isValidEmail(email) {
 
 export function validateSellerForm(form) {
   const errors = {}
-  if (!form.name?.trim()) errors.name = 'Seller name is required'
-  if (!isValidEmail(form.email)) errors.email = 'Enter a valid email address'
   if (!form.productName?.trim()) errors.productName = 'Product name is required'
   if (!form.listedPrice || Number(form.listedPrice) <= 0) {
     errors.listedPrice = 'Listed price must be a positive number'
@@ -18,7 +16,7 @@ export function validateSellerForm(form) {
 
 export function validateBuyerMessage(sellerId, message) {
   const errors = {}
-  if (!sellerId) errors.sellerId = 'Please select a seller profile'
+  if (!sellerId) errors.sellerId = 'Please select a product'
   if (!message?.trim()) errors.message = 'Enter the buyer message to analyze'
   return errors
 }

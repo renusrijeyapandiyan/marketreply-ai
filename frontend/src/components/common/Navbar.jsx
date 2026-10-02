@@ -14,10 +14,10 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-brand-600 flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-brand-gradient shadow-brand-sm flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>

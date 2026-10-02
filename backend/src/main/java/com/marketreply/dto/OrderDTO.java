@@ -1,22 +1,32 @@
 package com.marketreply.dto;
 
+import com.marketreply.model.OrderStatus;
+
 import java.time.Instant;
 
+/** Flattened view of an Order for the frontend, with resolved seller/buyer names. */
 public class OrderDTO {
 
     private String id;
     private String sellerId;
     private String sellerName;
     private String buyerId;
+    private String buyerName;
     private String conversationId;
+
     private String productName;
-    private Double agreedPrice;
+    private int quantity;
+    private double unitPrice;
+    private double totalPrice;
+
     private String deliveryMethod;
     private String deliveryAddress;
-    private String paymentMethod;
-    private String status;
-    private String role; // "SELLER" or "BUYER" — relative to the requesting user
+    private String buyerNotes;
+
+    private OrderStatus status;
+
     private Instant createdAt;
+    private Instant updatedAt;
 
     public String getId() {
         return id;
@@ -50,6 +60,14 @@ public class OrderDTO {
         this.buyerId = buyerId;
     }
 
+    public String getBuyerName() {
+        return buyerName;
+    }
+
+    public void setBuyerName(String buyerName) {
+        this.buyerName = buyerName;
+    }
+
     public String getConversationId() {
         return conversationId;
     }
@@ -66,12 +84,28 @@ public class OrderDTO {
         this.productName = productName;
     }
 
-    public Double getAgreedPrice() {
-        return agreedPrice;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setAgreedPrice(Double agreedPrice) {
-        this.agreedPrice = agreedPrice;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(double unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
     }
 
     public String getDeliveryMethod() {
@@ -90,28 +124,20 @@ public class OrderDTO {
         this.deliveryAddress = deliveryAddress;
     }
 
-    public String getPaymentMethod() {
-        return paymentMethod;
+    public String getBuyerNotes() {
+        return buyerNotes;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void setBuyerNotes(String buyerNotes) {
+        this.buyerNotes = buyerNotes;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public Instant getCreatedAt() {
@@ -120,5 +146,13 @@ public class OrderDTO {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

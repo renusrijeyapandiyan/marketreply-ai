@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { MessageSquareText, Store, History } from 'lucide-react'
+import { MessageSquareText, Store, History, ShoppingCart, ShoppingBag } from 'lucide-react'
 
 const actions = [
   { to: '/buyer-analyzer', label: 'Analyze a buyer message', icon: MessageSquareText, tone: 'bg-brand-600' },
-  { to: '/seller-settings', label: 'Update seller rules', icon: Store, tone: 'bg-accent-600' },
+  { to: '/cart', label: 'Go to cart', icon: ShoppingCart, tone: 'bg-gold-600' },
+  { to: '/orders', label: 'View orders', icon: ShoppingBag, tone: 'bg-accent-700' },
+  { to: '/seller-settings', label: 'Manage your products', icon: Store, tone: 'bg-accent-600' },
   { to: '/history', label: 'Browse conversation history', icon: History, tone: 'bg-slate-700' },
 ]
 

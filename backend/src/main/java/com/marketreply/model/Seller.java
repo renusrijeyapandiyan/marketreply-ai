@@ -4,7 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.List;
 
 /**
  * A marketplace seller profile: identity, the product being sold, and the
@@ -23,13 +22,6 @@ public class Seller {
     private String productName;
     private String productDescription;
     private Double listedPrice;
-
-    /** Free-text size (e.g. "M", "42", "10x8 ft"), "CUSTOMIZE", or null if not applicable. */
-    private String productSize;
-
-    /** Up to 10 base64 data-URL strings (e.g. "data:image/jpeg;base64,..."). */
-    private List<String> productImages;
-
     private SellerRule rules;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
@@ -91,22 +83,6 @@ public class Seller {
 
     public void setListedPrice(Double listedPrice) {
         this.listedPrice = listedPrice;
-    }
-
-    public String getProductSize() {
-        return productSize;
-    }
-
-    public void setProductSize(String productSize) {
-        this.productSize = productSize;
-    }
-
-    public List<String> getProductImages() {
-        return productImages;
-    }
-
-    public void setProductImages(List<String> productImages) {
-        this.productImages = productImages;
     }
 
     public SellerRule getRules() {
