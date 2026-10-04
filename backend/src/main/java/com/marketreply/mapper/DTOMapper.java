@@ -37,6 +37,10 @@ public class DTOMapper {
         dto.setProductDescription(seller.getProductDescription());
         dto.setListedPrice(seller.getListedPrice());
         dto.setRules(seller.getRules());
+        dto.setProductImages(seller.getProductImages());
+        if (seller.getProductImages() != null && !seller.getProductImages().isEmpty()) {
+            dto.setThumbnailImage(seller.getProductImages().get(0));
+        }
         return dto;
     }
 
@@ -53,7 +57,7 @@ public class DTOMapper {
         return dto;
     }
 
-        public static OrderDTO toDTO(Order order, String sellerName, String buyerName) {
+    public static OrderDTO toDTO(Order order, String sellerName, String buyerName) {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setSellerId(order.getSellerId());

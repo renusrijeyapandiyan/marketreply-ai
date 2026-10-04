@@ -6,10 +6,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.util.List;
+
 /**
  * Request/response payload for creating or updating a seller profile and rules.
  */
 public class SellerDTO {
+
+    /** Max product photos a seller can upload for one listing. */
+    public static final int MAX_PRODUCT_IMAGES = 10;
 
     private String id;
 
@@ -32,9 +37,11 @@ public class SellerDTO {
     @NotNull(message = "Rules are required")
     private SellerRule rules;
 
-    /** Read-only aggregate populated by SellerService — not set from the request. */
+    /** Read-only aggregate populated by SellerService - not set from the request. */
     private Double averageRating;
     private long reviewCount;
+    private List<String> productImages;
+    private String thumbnailImage;
 
     public String getId() {
         return id;
@@ -106,5 +113,21 @@ public class SellerDTO {
 
     public void setReviewCount(long reviewCount) {
         this.reviewCount = reviewCount;
+    }
+
+    public List<String> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<String> productImages) {
+        this.productImages = productImages;
+    }
+
+    public String getThumbnailImage() {
+        return thumbnailImage;
+    }
+
+    public void setThumbnailImage(String thumbnailImage) {
+        this.thumbnailImage = thumbnailImage;
     }
 }

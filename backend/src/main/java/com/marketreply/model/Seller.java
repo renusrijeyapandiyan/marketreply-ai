@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A marketplace seller profile: identity, the product being sold, and the
@@ -23,6 +25,7 @@ public class Seller {
     private String productDescription;
     private Double listedPrice;
     private SellerRule rules;
+    private List<String> productImages = new ArrayList<>();
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
@@ -91,6 +94,14 @@ public class Seller {
 
     public void setRules(SellerRule rules) {
         this.rules = rules;
+    }
+
+    public List<String> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<String> productImages) {
+        this.productImages = productImages;
     }
 
     public Instant getCreatedAt() {
