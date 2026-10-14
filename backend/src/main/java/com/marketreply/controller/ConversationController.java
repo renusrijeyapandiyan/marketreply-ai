@@ -1,7 +1,8 @@
 package com.marketreply.controller;
 
 import com.marketreply.dto.ConversationDTO;
-import com.marketreply.dto.DashboardDTO;
+import com.marketreply.dto.SellerDashboardDTO;
+import com.marketreply.service.DashboardService;
 import com.marketreply.service.ConversationService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,11 @@ import java.util.List;
 public class ConversationController {
 
     private final ConversationService conversationService;
+    private final DashboardService dashboardService;
 
-    public ConversationController(ConversationService conversationService) {
+    public ConversationController(ConversationService conversationService, DashboardService dashboardService) {
         this.conversationService = conversationService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/conversations")
@@ -36,8 +39,8 @@ public class ConversationController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardDTO> getDashboard(HttpServletRequest request) {
-        return ResponseEntity.ok(conversationService.getDashboard(ownerId(request)));
+    public ResponseEntity<SellerDashboardDTO> getDashboard(HttpServletRequest request) {
+        return ResponseEntity.ok(dashboardService.forSeller(ownerId(request)));
     }
 
     private String ownerId(HttpServletRequest request) {

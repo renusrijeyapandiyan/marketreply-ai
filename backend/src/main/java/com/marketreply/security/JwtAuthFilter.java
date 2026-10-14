@@ -26,7 +26,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/api/auth/register")
+        boolean isGet = "GET".equalsIgnoreCase(request.getMethod());
+        // Browsing the storefront needs no login; chatting, ordering and selling do.
+        boolean publicBrowse = isGet && (path.equals("/api/sellers/marketplace")
+                || path.startsWith("/api/sellers/public/")
+                || path.startsWith("/api/reviews/seller/"));
+        return publicBrowse
+                || path.equals("/api/auth/register")
                 || path.equals("/api/auth/login")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")

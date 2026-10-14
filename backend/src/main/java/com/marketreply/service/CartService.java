@@ -105,9 +105,8 @@ public class CartService {
             req.setQuantity(item.getQuantity());
             req.setDeliveryMethod("DELIVERY");
             req.setDeliveryAddress(request.getDeliveryAddress());
-            if (request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()) {
-                req.setBuyerNotes("Preferred payment: " + request.getPaymentMethod());
-            }
+            req.setPaymentMethod(request.getPaymentMethod());
+            req.setBuyerPhone(request.getBuyerPhone());
             created.add(orderService.createOrder(buyerId, req));
         }
 

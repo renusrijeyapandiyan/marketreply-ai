@@ -1,100 +1,29 @@
-import { useEffect, useState, useCallback } from 'react'
-import { ordersService } from '../services/ordersService.js'
-import { useAuth } from '../hooks/useAuth.js'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Package } from 'lucide-react'
 import OrderCard from '../components/orders/OrderCard.jsx'
-import Loader from '../components/common/Loader.jsx'
-
-const TABS = [
-  { key: 'ALL', label: 'All' },
-  { key: 'BUYER', label: 'My purchases' },
-  { key: 'SELLER', label: 'Sales on my listings' },
-]
+import Spinner from '../components/ui/Spinner.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import Alert from '../components/ui/Alert.jsx'
+import { orderService } from '../services/orderService.js'
+import { useAuth } from '../hooks/useAuth.js'
 
 export default function Orders() {
   const { user } = useAuth()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState(null)
   const [error, setError] = useState(null)
-  const [tab, setTab] = useState('ALL')
+  const load = () => orderService.list().then((l) => setOrders(l.filter((o) => o.buyerId === user.userId))).catch((e) => setError(e.message))
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchOrders = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await ordersService.list()
-      setOrders(data)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchOrders()
-  }, [fetchOrders])
-
-  const roleFor = (order) => (order.buyerId === user?.userId ? 'BUYER' : 'SELLER')
-
-  const filtered = orders.filter((o) => tab === 'ALL' || roleFor(o) === tab)
-
-  const handleAdvanceStatus = async (id, status) => {
-    await ordersService.updateStatus(id, status)
-    await fetchOrders()
-  }
-
-  const handleCancel = async (id) => {
-    await ordersService.cancel(id)
-    await fetchOrders()
-  }
+  const cancel = async (id) => { try { await orderService.cancel(id); load() } catch (e) { setError(e.message) } }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-slate-900">Orders</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Track purchases you've made and sales on your own listings.
-        </p>
-      </div>
-
-      <div className="flex gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={
-              tab === t.key
-                ? 'px-3.5 py-2 rounded-xl text-sm font-medium border bg-slate-900 border-slate-900 text-white'
-                : 'px-3.5 py-2 rounded-xl text-sm font-medium border bg-white border-slate-200 text-slate-600 hover:border-slate-300'
-            }
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <Loader label="Loading orders…" className="py-16 justify-center" />
-      ) : error ? (
-        <p className="text-sm text-rose-600">{error}</p>
-      ) : filtered.length === 0 ? (
-        <div className="card p-10 text-center text-slate-500">
-          No orders here yet. Place one from the Buyer Analyzer page.
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 gap-5">
-          {filtered.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              viewerRole={roleFor(order)}
-              onAdvanceStatus={handleAdvanceStatus}
-              onCancel={handleCancel}
-            />
-          ))}
-        </div>
-      )}
+    <div className="page max-w-4xl py-8">
+      <h1 className="mb-6 text-3xl font-extrabold">My orders</h1>
+      {error && <Alert type="error" className="mb-4">{error}</Alert>}
+      {!orders && !error && <Spinner />}
+      {orders?.length === 0 && <EmptyState icon={Package} title="No orders yet" action={<Link to="/" className="btn-primary">Browse products</Link>}>When you buy something, you can track it here.</EmptyState>}
+      <div className="space-y-4">{orders?.map((o) => <OrderCard key={o.id} order={o} role="BUYER" onCancel={cancel} />)}</div>
     </div>
   )
 }

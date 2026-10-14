@@ -3,6 +3,8 @@ package com.marketreply.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class CheckoutRequest {
+    private String buyerPhone;
+
 
     @NotBlank(message = "Delivery address is required")
     private String deliveryAddress;
@@ -23,5 +25,13 @@ public class CheckoutRequest {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
     }
 }

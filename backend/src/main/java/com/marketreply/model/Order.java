@@ -32,6 +32,12 @@ public class Order {
     private double unitPrice;
     private double totalPrice;
 
+    /** Price the product was listed at when the order was placed (unitPrice may be lower if negotiated). */
+    private double listedPrice;
+    private double deliveryCharge;
+    private String paymentMethod;
+    private String buyerPhone;
+
     private String deliveryMethod; // "DELIVERY" | "PICKUP" | null/UNSPECIFIED
     private String deliveryAddress;
     private String buyerNotes;
@@ -154,5 +160,37 @@ public class Order {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public double getListedPrice() {
+        return listedPrice;
+    }
+
+    public void setListedPrice(double listedPrice) {
+        this.listedPrice = listedPrice;
+    }
+
+    public double getDeliveryCharge() {
+        return deliveryCharge;
+    }
+
+    public void setDeliveryCharge(double deliveryCharge) {
+        this.deliveryCharge = deliveryCharge;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
     }
 }
