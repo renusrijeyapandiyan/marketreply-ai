@@ -123,7 +123,7 @@ public class SellerService {
      *   minimum acceptable price = selling price minus the maximum discount.
      * The seller only enters the discount %, so the floor can never drift out of sync with the price.
      */
-    static void normalize(Seller seller) {
+    public static void normalize(Seller seller) {
         SellerRule r = seller.getRules() != null ? seller.getRules() : new SellerRule();
         double listed = seller.getListedPrice() != null ? seller.getListedPrice() : 0;
 

@@ -25,3 +25,7 @@ Maven Central was unreachable, so the Spring app was not run. The new Java was c
 - Product photos show on cards, product page, hero, chat header and cart. Upload limit raised to 2 MB (Spring default was 1 MB).
 - New coral / gold / charcoal theme.
 - Backend reads the Mongo URI from MONGODB_URI (or SPRING_DATA_MONGODB_URI).
+
+## Demo data
+- `DemoDataSeeder` adds 6 demo sellers and 24 products (furniture, electronics, fashion, kitchen, books/toys, handmade) with prices, discounts, delivery areas, payment methods and generated product pictures.
+- Off by default. Set `SEED_DEMO_DATA=true` on the backend to run it. It never duplicates. Demo seller logins: password `Demo@1234` (e.g. kovai.furniture@demo.marketreply.in).
