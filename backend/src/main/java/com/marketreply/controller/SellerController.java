@@ -1,5 +1,6 @@
 package com.marketreply.controller;
 
+import com.marketreply.dto.ProductPublicDTO;
 import com.marketreply.dto.SellerDTO;
 import com.marketreply.service.SellerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,13 +49,18 @@ public class SellerController {
     }
 
     /**
-     * Public marketplace: every seller's listing, for any logged-in user to browse
-     * and pick one to message via the Buyer Analyzer. Declared before "/{id}" so
-     * Spring matches this exact literal path first.
+     * Public marketplace (no login needed). Returns buyer-safe cards: the minimum price, maximum
+     * discount and private notes are never included.
      */
     @GetMapping("/marketplace")
-    public ResponseEntity<List<SellerDTO>> getMarketplaceSellers() {
-        return ResponseEntity.ok(sellerService.getMarketplaceSellers());
+    public ResponseEntity<List<ProductPublicDTO>> getMarketplace() {
+        return ResponseEntity.ok(sellerService.getMarketplaceProducts());
+    }
+
+    /** Public product detail page (no login needed), buyer-safe. */
+    @GetMapping("/public/{id}")
+    public ResponseEntity<ProductPublicDTO> getPublicProduct(@PathVariable String id) {
+        return ResponseEntity.ok(sellerService.getPublicProduct(id));
     }
 
     @DeleteMapping("/{id}")

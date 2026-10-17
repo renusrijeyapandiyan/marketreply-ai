@@ -1,75 +1,91 @@
 package com.marketreply.model;
 
+import java.util.List;
+
 /**
- * The set of business rules a seller wants enforced when Gemini evaluates
- * an incoming buyer message. Embedded inside Seller.
+ * Everything a seller decides about how a product is sold. Embedded inside Seller.
+ *
+ * PRICING
+ *   Seller.listedPrice          - the selling price shown to buyers
+ *   maxDiscountPercent          - the most the AI assistant may knock off the listed price
+ *   minPrice                    - the minimum acceptable price. It is ALWAYS derived as
+ *                                 listedPrice - maxDiscountPercent% (see SellerService), and it is
+ *                                 never sent to buyers or to the language model.
+ *
+ * DELIVERY / PAYMENT
+ *   deliveryAvailable, pickupAvailable, deliveryCharge, freeDeliveryAbove, estimatedDeliveryDays,
+ *   deliveryLocations (cities / areas / pincodes served), pickupAddress, acceptedPaymentMethods
  */
 public class SellerRule {
 
+    // ---- pricing -------------------------------------------------------
+    private Double maxDiscountPercent;
     private Double minPrice;
+    private String negotiationStyle; // FLEXIBLE, MODERATE, FIRM
+
+    // ---- delivery ------------------------------------------------------
     private Boolean deliveryAvailable;
     private Boolean pickupAvailable;
-    private java.util.List<String> acceptedPaymentMethods;
+    private Double deliveryCharge;
+    private Double freeDeliveryAbove;
+    private Integer estimatedDeliveryDays;
+    private List<String> deliveryLocations;
+    private String pickupAddress;
     private Integer maxDeliveryDistanceKm;
-    private String negotiationStyle; // e.g. FLEXIBLE, FIRM, MODERATE
+
+    // ---- payment & policies --------------------------------------------
+    private List<String> acceptedPaymentMethods;
+    private String returnPolicy;
+    private String warranty;
+
+    /** Private instructions for the AI assistant (never shown to buyers). */
     private String additionalNotes;
 
     public SellerRule() {
     }
 
-    public Double getMinPrice() {
-        return minPrice;
-    }
+    public Double getMaxDiscountPercent() { return maxDiscountPercent; }
+    public void setMaxDiscountPercent(Double maxDiscountPercent) { this.maxDiscountPercent = maxDiscountPercent; }
 
-    public void setMinPrice(Double minPrice) {
-        this.minPrice = minPrice;
-    }
+    public Double getMinPrice() { return minPrice; }
+    public void setMinPrice(Double minPrice) { this.minPrice = minPrice; }
 
-    public Boolean getDeliveryAvailable() {
-        return deliveryAvailable;
-    }
+    public String getNegotiationStyle() { return negotiationStyle; }
+    public void setNegotiationStyle(String negotiationStyle) { this.negotiationStyle = negotiationStyle; }
 
-    public void setDeliveryAvailable(Boolean deliveryAvailable) {
-        this.deliveryAvailable = deliveryAvailable;
-    }
+    public Boolean getDeliveryAvailable() { return deliveryAvailable; }
+    public void setDeliveryAvailable(Boolean deliveryAvailable) { this.deliveryAvailable = deliveryAvailable; }
 
-    public Boolean getPickupAvailable() {
-        return pickupAvailable;
-    }
+    public Boolean getPickupAvailable() { return pickupAvailable; }
+    public void setPickupAvailable(Boolean pickupAvailable) { this.pickupAvailable = pickupAvailable; }
 
-    public void setPickupAvailable(Boolean pickupAvailable) {
-        this.pickupAvailable = pickupAvailable;
-    }
+    public Double getDeliveryCharge() { return deliveryCharge; }
+    public void setDeliveryCharge(Double deliveryCharge) { this.deliveryCharge = deliveryCharge; }
 
-    public java.util.List<String> getAcceptedPaymentMethods() {
-        return acceptedPaymentMethods;
-    }
+    public Double getFreeDeliveryAbove() { return freeDeliveryAbove; }
+    public void setFreeDeliveryAbove(Double freeDeliveryAbove) { this.freeDeliveryAbove = freeDeliveryAbove; }
 
-    public void setAcceptedPaymentMethods(java.util.List<String> acceptedPaymentMethods) {
-        this.acceptedPaymentMethods = acceptedPaymentMethods;
-    }
+    public Integer getEstimatedDeliveryDays() { return estimatedDeliveryDays; }
+    public void setEstimatedDeliveryDays(Integer estimatedDeliveryDays) { this.estimatedDeliveryDays = estimatedDeliveryDays; }
 
-    public Integer getMaxDeliveryDistanceKm() {
-        return maxDeliveryDistanceKm;
-    }
+    public List<String> getDeliveryLocations() { return deliveryLocations; }
+    public void setDeliveryLocations(List<String> deliveryLocations) { this.deliveryLocations = deliveryLocations; }
 
-    public void setMaxDeliveryDistanceKm(Integer maxDeliveryDistanceKm) {
-        this.maxDeliveryDistanceKm = maxDeliveryDistanceKm;
-    }
+    public String getPickupAddress() { return pickupAddress; }
+    public void setPickupAddress(String pickupAddress) { this.pickupAddress = pickupAddress; }
 
-    public String getNegotiationStyle() {
-        return negotiationStyle;
-    }
+    public Integer getMaxDeliveryDistanceKm() { return maxDeliveryDistanceKm; }
+    public void setMaxDeliveryDistanceKm(Integer maxDeliveryDistanceKm) { this.maxDeliveryDistanceKm = maxDeliveryDistanceKm; }
 
-    public void setNegotiationStyle(String negotiationStyle) {
-        this.negotiationStyle = negotiationStyle;
-    }
+    public List<String> getAcceptedPaymentMethods() { return acceptedPaymentMethods; }
+    public void setAcceptedPaymentMethods(List<String> acceptedPaymentMethods) { this.acceptedPaymentMethods = acceptedPaymentMethods; }
 
-    public String getAdditionalNotes() {
-        return additionalNotes;
-    }
+    public String getReturnPolicy() { return returnPolicy; }
+    public void setReturnPolicy(String returnPolicy) { this.returnPolicy = returnPolicy; }
 
-    public void setAdditionalNotes(String additionalNotes) {
-        this.additionalNotes = additionalNotes;
-    }
+    public String getWarranty() { return warranty; }
+    public void setWarranty(String warranty) { this.warranty = warranty; }
+
+    public String getAdditionalNotes() { return additionalNotes; }
+    public void setAdditionalNotes(String additionalNotes) { this.additionalNotes = additionalNotes; }
 }

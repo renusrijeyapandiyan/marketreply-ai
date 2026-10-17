@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Handles uploading/removing product photos for a seller listing (up to 10 images). */
+/** Handles uploading/removing product photos for a seller listing (up to 5 images). */
 @RestController
 @RequestMapping("/api/sellers")
 public class SellerImageController {
 
-    private static final long MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB
+    private static final long MAX_IMAGE_BYTES = 1536 * 1024; // 1.5MB (5 photos stay well under Mongo's 16MB document cap)
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final SellerRepository sellerRepository;
@@ -49,7 +49,7 @@ public class SellerImageController {
             throw new InvalidRequestException("No image file was uploaded");
         }
         if (file.getSize() > MAX_IMAGE_BYTES) {
-            throw new InvalidRequestException("Image must be smaller than 2MB");
+            throw new InvalidRequestException("Image must be smaller than 1.5MB");
         }
         if (file.getContentType() == null || !ALLOWED_TYPES.contains(file.getContentType())) {
             throw new InvalidRequestException("Only JPEG, PNG, or WEBP images are allowed");

@@ -1,144 +1,82 @@
 import { useState } from 'react'
-import { Package, Truck, CheckCircle2, XCircle, ArrowRight, Star } from 'lucide-react'
-import { formatCurrency, formatDate } from '../../utils/formatter.js'
-import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_STATUS_FLOW } from '../../utils/constants.js'
-import ReviewForm from '../reviews/ReviewForm.jsx'
+import { Truck, MapPin, CreditCard, Phone, BadgePercent } from 'lucide-react'
+import { formatCurrency, formatDate, percentOff } from '../../utils/formatter.js'
+import { ORDER_STATUS_LABELS, ORDER_STATUS_BADGE, ORDER_STATUS_FLOW } from '../../utils/constants.js'
+import ReviewForm from './ReviewForm.jsx'
+import { classNames } from '../../utils/helpers.js'
 
-const STATUS_ICON = {
-  PENDING: Package,
-  CONFIRMED: CheckCircle2,
-  SHIPPED: Truck,
-  DELIVERED: CheckCircle2,
-  CANCELLED: XCircle,
+function Steps({ status }) {
+  if (status === 'CANCELLED') return null
+  const idx = ORDER_STATUS_FLOW.indexOf(status)
+  return (
+    <ol className="mt-4 flex items-center gap-1.5" aria-label="Order progress">
+      {ORDER_STATUS_FLOW.map((s, i) => (
+        <li key={s} className="flex flex-1 flex-col gap-1.5">
+          <span className={classNames('h-1.5 rounded-full', i <= idx ? 'bg-brand-600' : 'bg-ink-200')} />
+          <span className={classNames('text-[11px] font-semibold', i <= idx ? 'text-brand-700' : 'text-ink-400')}>{ORDER_STATUS_LABELS[s]}</span>
+        </li>
+      ))}
+    </ol>
+  )
 }
 
-export default function OrderCard({ order, viewerRole, onAdvanceStatus, onCancel }) {
+export default function OrderCard({ order, role, onAdvance, onCancel }) {
   const [busy, setBusy] = useState(false)
-  const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewed, setReviewed] = useState(false)
-  const Icon = STATUS_ICON[order.status] || Package
+  const idx = ORDER_STATUS_FLOW.indexOf(order.status)
+  const next = idx >= 0 && idx < ORDER_STATUS_FLOW.length - 1 ? ORDER_STATUS_FLOW[idx + 1] : null
+  const off = percentOff(order.listedPrice, order.unitPrice)
 
-  const currentIndex = ORDER_STATUS_FLOW.indexOf(order.status)
-  const nextStatus = currentIndex >= 0 && currentIndex < ORDER_STATUS_FLOW.length - 1
-    ? ORDER_STATUS_FLOW[currentIndex + 1]
-    : null
-
-  const canAdvance = viewerRole === 'SELLER' && nextStatus && order.status !== 'CANCELLED'
-  const canCancel = viewerRole === 'BUYER' && order.status === 'PENDING'
-  const canReview = viewerRole === 'BUYER' && order.status === 'DELIVERED' && !reviewed
-
-  const handleAdvance = async () => {
-    setBusy(true)
-    try {
-      await onAdvanceStatus(order.id, nextStatus)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const handleCancel = async () => {
-    if (!window.confirm('Cancel this order? This cannot be undone.')) return
-    setBusy(true)
-    try {
-      await onCancel(order.id)
-    } finally {
-      setBusy(false)
-    }
-  }
+  const run = async (fn) => { setBusy(true); try { await fn() } finally { setBusy(false) } }
 
   return (
-    <div className="card p-5">
+    <article className="card p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="badge-neutral !py-0.5 !px-2">
-              {viewerRole === 'BUYER' ? 'Your purchase' : 'Sale on your listing'}
-            </span>
-            <p className="text-xs text-slate-400">{formatDate(order.createdAt)}</p>
-          </div>
-          <p className="font-display font-semibold text-slate-900">{order.productName}</p>
-          <p className="text-sm text-slate-500 mt-0.5">
-            {viewerRole === 'BUYER' ? `Seller: ${order.sellerName}` : `Buyer: ${order.buyerName}`}
+          <p className="text-xs text-ink-500">{formatDate(order.createdAt)}</p>
+          <h3 className="mt-0.5 text-lg font-bold">{order.productName}</h3>
+          <p className="mt-1 text-sm text-ink-600">
+            {order.quantity} × {formatCurrency(order.unitPrice)}
+            {off > 0 && (
+              <>
+                {' '}<span className="text-ink-400 line-through">{formatCurrency(order.listedPrice)}</span>{' '}
+                <span className="badge-accent ml-1"><BadgePercent className="h-3 w-3" /> negotiated {off}% off</span>
+              </>
+            )}
           </p>
         </div>
-        <span className={ORDER_STATUS_COLORS[order.status] || 'badge-neutral'}>
-          <Icon className="h-3.5 w-3.5 mr-1 inline" />
-          {ORDER_STATUS_LABELS[order.status] || order.status}
-        </span>
+        <div className="text-right">
+          <span className={ORDER_STATUS_BADGE[order.status]}>{ORDER_STATUS_LABELS[order.status]}</span>
+          <p className="mt-2 font-display text-xl font-extrabold">{formatCurrency(order.totalPrice)}</p>
+          {order.deliveryCharge > 0 && <p className="text-xs text-ink-500">incl. {formatCurrency(order.deliveryCharge)} delivery</p>}
+        </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 mt-4 text-sm">
-        <div>
-          <dt className="text-slate-400 text-xs">Quantity</dt>
-          <dd className="font-medium text-slate-800">{order.quantity}</dd>
-        </div>
-        <div>
-          <dt className="text-slate-400 text-xs">Total</dt>
-          <dd className="font-medium text-slate-800">{formatCurrency(order.totalPrice)}</dd>
-        </div>
-        {order.deliveryMethod && (
-          <div>
-            <dt className="text-slate-400 text-xs">Delivery method</dt>
-            <dd className="font-medium text-slate-800">{order.deliveryMethod}</dd>
-          </div>
+      <div className="mt-4 grid gap-2 rounded-xl bg-ink-50 p-3.5 text-sm text-ink-700 sm:grid-cols-2">
+        <p className="flex items-start gap-2"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />{order.deliveryMethod === 'PICKUP' ? 'Pickup' : 'Home delivery'}</p>
+        <p className="flex items-start gap-2"><CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />{order.paymentMethod || '—'}</p>
+        <p className="flex items-start gap-2 sm:col-span-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />{order.deliveryAddress || '—'}</p>
+        {role === 'SELLER' && order.buyerPhone && (
+          <p className="flex items-start gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" /><a href={`tel:${order.buyerPhone}`} className="font-semibold text-brand-700">{order.buyerPhone}</a></p>
         )}
-        {order.deliveryAddress && (
-          <div className="col-span-2">
-            <dt className="text-slate-400 text-xs">Address</dt>
-            <dd className="font-medium text-slate-800">{order.deliveryAddress}</dd>
-          </div>
+      </div>
+
+      <Steps status={order.status} />
+
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        {role === 'SELLER' && next && order.status !== 'CANCELLED' && (
+          <button className="btn-primary btn-sm" disabled={busy} onClick={() => run(() => onAdvance(order.id, next))}>Mark as {ORDER_STATUS_LABELS[next]}</button>
         )}
-      </dl>
+        {role === 'SELLER' && order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+          <button className="btn-danger btn-sm" disabled={busy} onClick={() => window.confirm('Cancel this order? Stock will be returned.') && run(() => onAdvance(order.id, 'CANCELLED'))}>Cancel order</button>
+        )}
+        {role === 'BUYER' && order.status === 'PENDING' && (
+          <button className="btn-danger btn-sm" disabled={busy} onClick={() => window.confirm('Cancel this order?') && run(() => onCancel(order.id))}>Cancel order</button>
+        )}
+      </div>
 
-      {order.buyerNotes && (
-        <p className="text-sm text-slate-500 mt-3 pt-3 border-t border-slate-100">
-          <span className="text-slate-400">Note: </span>{order.buyerNotes}
-        </p>
-      )}
-
-      {(canAdvance || canCancel || canReview) && (
-        <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
-          {canCancel && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={busy}
-              className="text-sm font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50"
-            >
-              Cancel order
-            </button>
-          )}
-          {canAdvance && (
-            <button
-              type="button"
-              onClick={handleAdvance}
-              disabled={busy}
-              className="btn-primary py-2 px-3.5 text-sm disabled:opacity-50"
-            >
-              Mark as {ORDER_STATUS_LABELS[nextStatus]} <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          )}
-          {canReview && !showReviewForm && (
-            <button
-              type="button"
-              onClick={() => setShowReviewForm(true)}
-              className="btn-secondary py-2 px-3.5 text-sm"
-            >
-              <Star className="h-3.5 w-3.5" /> Leave a review
-            </button>
-          )}
-        </div>
-      )}
-
-      {canReview && showReviewForm && (
-        <ReviewForm orderId={order.id} onSubmitted={() => { setReviewed(true); setShowReviewForm(false) }} />
-      )}
-
-      {viewerRole === 'BUYER' && order.status === 'DELIVERED' && reviewed && (
-        <p className="mt-4 pt-4 border-t border-slate-100 text-sm text-accent-700 flex items-center gap-1.5">
-          <Star className="h-3.5 w-3.5 fill-gold-400 text-gold-400" /> Thanks for your review!
-        </p>
-      )}
-    </div>
+      {role === 'BUYER' && order.status === 'DELIVERED' && !reviewed && <ReviewForm orderId={order.id} onSubmitted={() => setReviewed(true)} />}
+      {reviewed && <p className="mt-3 text-right text-sm font-medium text-emerald-700">Thanks for your review!</p>}
+    </article>
   )
 }

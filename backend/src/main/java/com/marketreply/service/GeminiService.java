@@ -30,7 +30,22 @@ public class GeminiService {
         this.geminiConfig = geminiConfig;
     }
 
+    /** Original JSON analysis call (legacy seller-side analyzer). */
     public String generateContent(String prompt) {
+        return run(prompt, responseSchema(), true);
+    }
+
+    /** JSON output constrained to the given Gemini response schema. */
+    public String generateJson(String prompt, Map<String, Object> schema) {
+        return run(prompt, schema, true);
+    }
+
+    /** Plain text output (used for the chat reply). */
+    public String generateText(String prompt) {
+        return run(prompt, null, false);
+    }
+
+    private String run(String prompt, Map<String, Object> schema, boolean json) {
         String apiKey = geminiConfig.getApiKey();
         if (apiKey == null || apiKey.isBlank() || apiKey.startsWith("your-gemini-api-key")) {
             throw new GeminiException(
@@ -52,7 +67,7 @@ public class GeminiService {
 
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
-                    return callOnce(model, prompt, withSchema);
+                    return callOnce(model, prompt, schema, json, withSchema);
                 } catch (GeminiException e) {
                     last = e;
                     log.warn("Gemini call failed (model={}, attempt={}/{}, schema={}): {}",
@@ -73,17 +88,20 @@ public class GeminiService {
         throw last != null ? last : new GeminiException("Gemini call failed", 0, false);
     }
 
-    private String callOnce(String model, String prompt, boolean withSchema) {
-        JsonNode response = post(model, buildRequestBody(model, prompt, withSchema));
+    private String callOnce(String model, String prompt, Map<String, Object> schema, boolean json, boolean withSchema) {
+        JsonNode response = post(model, buildRequestBody(model, prompt, schema, json, withSchema));
         return extractText(response);
     }
 
-    private Map<String, Object> buildRequestBody(String model, String prompt, boolean withSchema) {
+    private Map<String, Object> buildRequestBody(String model, String prompt, Map<String, Object> schema,
+                                                 boolean json, boolean withSchema) {
         Map<String, Object> generationConfig = new LinkedHashMap<>();
-        generationConfig.put("temperature", 0.3);
-        generationConfig.put("responseMimeType", "application/json");
-        if (withSchema) {
-            generationConfig.put("responseSchema", responseSchema());
+        generationConfig.put("temperature", json ? 0.2 : 0.6);
+        if (json) {
+            generationConfig.put("responseMimeType", "application/json");
+            if (withSchema && schema != null) {
+                generationConfig.put("responseSchema", schema);
+            }
         }
 
         int maxTokens = geminiConfig.getMaxOutputTokens();

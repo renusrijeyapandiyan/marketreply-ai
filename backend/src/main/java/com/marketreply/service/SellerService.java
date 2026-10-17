@@ -1,6 +1,8 @@
 package com.marketreply.service;
 
+import com.marketreply.dto.ProductPublicDTO;
 import com.marketreply.dto.SellerDTO;
+import com.marketreply.model.SellerRule;
 import com.marketreply.exception.InvalidRequestException;
 import com.marketreply.exception.ResourceNotFoundException;
 import com.marketreply.mapper.DTOMapper;
@@ -11,6 +13,7 @@ import com.marketreply.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +54,8 @@ public class SellerService {
         seller.setEmail(owner.getEmail());
         seller.setCreatedAt(Instant.now());
         seller.setUpdatedAt(Instant.now());
+        seller.setProductImages(new ArrayList<>());
+        normalize(seller);
         Seller saved = sellerRepository.save(seller);
         return withRating(DTOMapper.toDTO(saved));
     }
@@ -65,7 +70,10 @@ public class SellerService {
         existing.setProductName(dto.getProductName());
         existing.setProductDescription(dto.getProductDescription());
         existing.setListedPrice(dto.getListedPrice());
+        existing.setCategory(dto.getCategory());
+        existing.setStock(dto.getStock());
         existing.setRules(dto.getRules());
+        normalize(existing);
         existing.setUpdatedAt(Instant.now());
 
         Seller saved = sellerRepository.save(existing);
@@ -86,9 +94,68 @@ public class SellerService {
         return withRatings(sellerRepository.findByOwnerId(ownerId).stream().map(DTOMapper::toDTO).toList());
     }
 
-    /** Public marketplace listing: every product from every seller, for buyers to browse. */
-    public List<SellerDTO> getMarketplaceSellers() {
-        return withRatings(sellerRepository.findAll().stream().map(DTOMapper::toDTO).toList());
+    /** Public marketplace: buyer-safe cards for every product (cover photo only, no private pricing). */
+    public List<ProductPublicDTO> getMarketplaceProducts() {
+        List<ProductPublicDTO> list = sellerRepository.findAll().stream()
+                .map(s -> DTOMapper.toPublicDTO(s, false)).toList();
+        Map<String, double[]> ratings = reviewService.averageRatingsBySeller(list.stream().map(ProductPublicDTO::getId).toList());
+        for (ProductPublicDTO dto : list) {
+            double[] agg = ratings.getOrDefault(dto.getId(), new double[]{0, 0});
+            dto.setAverageRating(agg[0] > 0 ? agg[0] : null);
+            dto.setReviewCount((long) agg[1]);
+        }
+        return list;
+    }
+
+    /** Public product page: buyer-safe, with all photos. */
+    public ProductPublicDTO getPublicProduct(String id) {
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + id));
+        ProductPublicDTO dto = DTOMapper.toPublicDTO(seller, true);
+        double[] agg = reviewService.averageRatingsBySeller(List.of(id)).getOrDefault(id, new double[]{0, 0});
+        dto.setAverageRating(agg[0] > 0 ? agg[0] : null);
+        dto.setReviewCount((long) agg[1]);
+        return dto;
+    }
+
+    /**
+     * Keeps the seller's pricing rules internally consistent:
+     *   minimum acceptable price = selling price minus the maximum discount.
+     * The seller only enters the discount %, so the floor can never drift out of sync with the price.
+     */
+    static void normalize(Seller seller) {
+        SellerRule r = seller.getRules() != null ? seller.getRules() : new SellerRule();
+        double listed = seller.getListedPrice() != null ? seller.getListedPrice() : 0;
+
+        double pct = r.getMaxDiscountPercent() != null ? r.getMaxDiscountPercent() : 0;
+        pct = Math.max(0, Math.min(90, pct));
+        r.setMaxDiscountPercent(pct);
+        r.setMinPrice(Math.round(listed * (1 - pct / 100.0) * 100.0) / 100.0);
+
+        if (r.getNegotiationStyle() == null || r.getNegotiationStyle().isBlank()) {
+            r.setNegotiationStyle("MODERATE");
+        }
+        if (r.getDeliveryCharge() != null && r.getDeliveryCharge() < 0) {
+            r.setDeliveryCharge(0.0);
+        }
+        r.setDeliveryLocations(cleanList(r.getDeliveryLocations()));
+        r.setAcceptedPaymentMethods(cleanList(r.getAcceptedPaymentMethods()));
+        if (seller.getStock() != null && seller.getStock() < 0) {
+            seller.setStock(0);
+        }
+        seller.setRules(r);
+    }
+
+    private static List<String> cleanList(List<String> in) {
+        List<String> out = new ArrayList<>();
+        if (in != null) {
+            for (String v : in) {
+                if (v != null && !v.isBlank() && out.stream().noneMatch(x -> x.equalsIgnoreCase(v.trim()))) {
+                    out.add(v.trim());
+                }
+            }
+        }
+        return out;
     }
 
     public void deleteSeller(String ownerId, String id) {

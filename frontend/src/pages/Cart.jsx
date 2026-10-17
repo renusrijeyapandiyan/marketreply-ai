@@ -1,179 +1,75 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Trash2, ShoppingCart, Minus, Plus } from 'lucide-react'
-import { cartService } from '../services/cartService.js'
+import { Link } from 'react-router-dom'
+import { ShoppingCart, Trash2, Minus, Plus, CheckCircle2 } from 'lucide-react'
 import { useCart } from '../hooks/useCart.js'
+import { cartService } from '../services/cartService.js'
+import { Input, Select, Textarea } from '../components/ui/Field.jsx'
+import Alert from '../components/ui/Alert.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import ProductImage from '../components/shop/ProductImage.jsx'
 import { formatCurrency } from '../utils/formatter.js'
-import Loader from '../components/common/Loader.jsx'
-import Button from '../components/common/Button.jsx'
+import { isValidPhone } from '../utils/validator.js'
+import { PAYMENT_METHOD_OPTIONS } from '../utils/constants.js'
 
 export default function Cart() {
-  const navigate = useNavigate()
-  const { cart, loading, refreshCart, setCart } = useCart()
+  const { cart, setCart, refreshCart } = useCart()
+  const [form, setForm] = useState({ deliveryAddress: '', paymentMethod: 'UPI', buyerPhone: '' })
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
-  const [deliveryAddress, setDeliveryAddress] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [checkingOut, setCheckingOut] = useState(false)
-  const [placedOrders, setPlacedOrders] = useState(null)
+  const [done, setDone] = useState(false)
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
-  const changeQuantity = async (sellerId, quantity) => {
-    setError(null)
-    try {
-      setCart(await cartService.updateQuantity(sellerId, quantity))
-    } catch (err) {
-      setError(err.message)
-    }
-  }
+  const wrap = async (fn) => { setError(null); try { setCart(await fn()) } catch (e) { setError(e.message) } }
 
-  const removeItem = async (sellerId) => {
-    setError(null)
-    try {
-      setCart(await cartService.removeItem(sellerId))
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleCheckout = async (e) => {
+  const checkout = async (e) => {
     e.preventDefault()
-    setError(null)
-    setCheckingOut(true)
-    try {
-      const orders = await cartService.checkout({ deliveryAddress, paymentMethod })
-      setPlacedOrders(orders)
-      await refreshCart()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setCheckingOut(false)
-    }
+    if (!isValidPhone(form.buyerPhone)) return setError('Enter a valid phone number')
+    setBusy(true); setError(null)
+    try { await cartService.checkout(form); await refreshCart(); setDone(true) }
+    catch (err) { setError(err.message); refreshCart() }
+    finally { setBusy(false) }
   }
 
-  if (loading && !cart.items.length) {
-    return <Loader label="Loading your cart…" className="py-24 justify-center" />
-  }
-
-  if (placedOrders) {
-    return (
-      <div className="card p-8 text-center space-y-4 max-w-lg mx-auto">
-        <ShoppingCart className="h-8 w-8 text-accent-600 mx-auto" />
-        <h1 className="text-xl font-display font-bold text-slate-900">
-          Order{placedOrders.length > 1 ? 's' : ''} placed!
-        </h1>
-        <p className="text-sm text-slate-500">
-          {placedOrders.length} order{placedOrders.length > 1 ? 's have' : ' has'} been created and sent to the
-          seller{placedOrders.length > 1 ? 's' : ''}.
-        </p>
-        <Button onClick={() => navigate('/orders')}>View my orders</Button>
-      </div>
-    )
-  }
-
-  const items = cart?.items || []
+  if (done) return <div className="page py-10"><EmptyState icon={CheckCircle2} title="Orders placed!" action={<Link to="/orders" className="btn-primary">View my orders</Link>}>Each seller has been notified.</EmptyState></div>
+  if (!cart.items.length) return <div className="page py-10"><EmptyState icon={ShoppingCart} title="Your cart is empty" action={<Link to="/" className="btn-primary">Start shopping</Link>}>Add products, or chat with a product's assistant to negotiate first.</EmptyState></div>
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-slate-900">Cart</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Review your items and check out to place the order — no chat needed.
-        </p>
-      </div>
-
-      {error && <div className="rounded-xl bg-rose-50 text-rose-700 text-sm px-4 py-3">{error}</div>}
-
-      {items.length === 0 ? (
-        <div className="card p-10 text-center text-slate-500">
-          Your cart is empty.{' '}
-          <Link to="/sellers" className="text-brand-600 font-medium">Browse products</Link> to add something.
-        </div>
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <div key={item.sellerId} className="card p-4 flex items-center gap-4">
-                <div className="h-14 w-14 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                  {item.thumbnailImage ? (
-                    <img src={item.thumbnailImage} alt={item.productName} className="h-full w-full object-cover" />
-                  ) : (
-                    <ShoppingCart className="h-5 w-5 text-slate-300" />
-                  )}
+    <div className="page py-8">
+      <h1 className="mb-6 text-3xl font-extrabold">Your cart</h1>
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="space-y-3">
+          {cart.items.map((it) => (
+            <div key={it.sellerId} className="card flex gap-4 p-4">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl"><ProductImage src={it.thumbnailImage} name={it.productName} /></div>
+              <div className="min-w-0 flex-1">
+                <Link to={`/product/${it.sellerId}`} className="line-clamp-1 font-bold hover:text-brand-700">{it.productName}</Link>
+                <p className="text-sm text-ink-500">{formatCurrency(it.listedPrice)} each</p>
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="flex items-center rounded-lg border border-ink-200">
+                    <button className="p-1.5" onClick={() => wrap(() => cartService.updateQuantity(it.sellerId, Math.max(1, it.quantity - 1)))} aria-label="Less"><Minus className="h-4 w-4" /></button>
+                    <span className="w-8 text-center text-sm font-semibold">{it.quantity}</span>
+                    <button className="p-1.5" onClick={() => wrap(() => cartService.updateQuantity(it.sellerId, it.quantity + 1))} aria-label="More"><Plus className="h-4 w-4" /></button>
+                  </div>
+                  <button className="text-sm font-medium text-rose-600 hover:underline" onClick={() => wrap(() => cartService.removeItem(it.sellerId))}><Trash2 className="mr-1 inline h-4 w-4" />Remove</button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-slate-800 truncate">{item.productName}</p>
-                  <p className="text-sm text-slate-400">{formatCurrency(item.listedPrice)} each</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => changeQuantity(item.sellerId, item.quantity - 1)}
-                    className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => changeQuantity(item.sellerId, item.quantity + 1)}
-                    className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <p className="w-24 text-right font-semibold text-slate-800 shrink-0">
-                  {formatCurrency(item.lineTotal)}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.sellerId)}
-                  className="text-slate-300 hover:text-rose-600 shrink-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
               </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleCheckout} className="card p-6 h-fit space-y-4">
-            <h3 className="font-display font-semibold text-slate-900">Checkout</h3>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-500">Items</span>
-              <span className="font-medium text-slate-800">{cart.itemCount}</span>
+              <p className="font-display text-lg font-extrabold">{formatCurrency(it.lineTotal)}</p>
             </div>
-            <div className="flex items-center justify-between text-sm pb-3 border-b border-slate-100">
-              <span className="text-slate-500">Subtotal</span>
-              <span className="font-semibold text-slate-900">{formatCurrency(cart.subtotal)}</span>
-            </div>
-            <div>
-              <label className="label" htmlFor="deliveryAddress">Delivery address</label>
-              <textarea
-                id="deliveryAddress"
-                rows={2}
-                className="input-field resize-none"
-                required
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label" htmlFor="paymentMethod">Preferred payment method</label>
-              <input
-                id="paymentMethod"
-                className="input-field"
-                placeholder="e.g. UPI, Cash"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
-            </div>
-            <button type="submit" className="btn-primary w-full justify-center" disabled={checkingOut}>
-              {checkingOut ? 'Placing order…' : `Place order${items.length > 1 ? 's' : ''}`}
-            </button>
-            {items.length > 1 && (
-              <p className="text-xs text-slate-400">Items from different sellers become separate orders.</p>
-            )}
-          </form>
+          ))}
+          <Alert type="info">Cart items are bought at the listed price. To bargain, open the product and chat with its assistant.</Alert>
         </div>
-      )}
+
+        <form onSubmit={checkout} className="card h-fit space-y-4 p-5 lg:sticky lg:top-20">
+          <h2 className="text-lg font-bold">Checkout</h2>
+          {error && <Alert type="error">{error}</Alert>}
+          <Textarea id="addr" label="Delivery address" rows={2} placeholder="House, street, area, city, pincode" value={form.deliveryAddress} onChange={set('deliveryAddress')} required />
+          <Select id="pay" label="Payment method" value={form.paymentMethod} onChange={set('paymentMethod')}>{PAYMENT_METHOD_OPTIONS.map((m) => <option key={m}>{m}</option>)}</Select>
+          <Input id="phone" label="Phone" type="tel" value={form.buyerPhone} onChange={set('buyerPhone')} required />
+          <div className="flex justify-between border-t border-ink-100 pt-3 text-lg font-bold"><span>Subtotal</span><span>{formatCurrency(cart.subtotal)}</span></div>
+          <p className="hint !mt-0">Delivery charges are added per seller at checkout.</p>
+          <button className="btn-primary btn-lg w-full" disabled={busy}>{busy ? 'Placing…' : 'Place orders'}</button>
+        </form>
+      </div>
     </div>
   )
 }

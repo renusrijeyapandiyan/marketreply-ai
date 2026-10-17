@@ -1,14 +1,10 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 
-/** Redirects to /login if the user isn't authenticated, preserving the intended destination. */
+/** Redirects to /login when signed out and brings the user back afterwards. */
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth()
   const location = useLocation()
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />
-  }
-
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location }} />
   return children
 }

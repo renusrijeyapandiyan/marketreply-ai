@@ -23,9 +23,12 @@ public class Seller {
     private String email;
     private String productName;
     private String productDescription;
+    private String category;
     private Double listedPrice;
-    private SellerRule rules;
+    private Integer stock;
+    /** Product photos as data URIs (kept small: see SellerImageController limits). */
     private List<String> productImages = new ArrayList<>();
+    private SellerRule rules;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
@@ -96,14 +99,6 @@ public class Seller {
         this.rules = rules;
     }
 
-    public List<String> getProductImages() {
-        return productImages;
-    }
-
-    public void setProductImages(List<String> productImages) {
-        this.productImages = productImages;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -118,5 +113,29 @@ public class Seller {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public List<String> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<String> productImages) {
+        this.productImages = productImages;
     }
 }
