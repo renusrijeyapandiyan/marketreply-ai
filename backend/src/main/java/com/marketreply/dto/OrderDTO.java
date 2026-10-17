@@ -6,6 +6,13 @@ import java.time.Instant;
 
 /** Flattened view of an Order for the frontend, with resolved seller/buyer names. */
 public class OrderDTO {
+    private double listedPrice;
+    private double deliveryCharge;
+    private String paymentMethod;
+    private String buyerPhone;
+    private boolean negotiated;
+    private double subtotal;
+
 
     private String id;
     private String sellerId;
@@ -154,5 +161,53 @@ public class OrderDTO {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public double getListedPrice() {
+        return listedPrice;
+    }
+
+    public void setListedPrice(double listedPrice) {
+        this.listedPrice = listedPrice;
+    }
+
+    public double getDeliveryCharge() {
+        return deliveryCharge;
+    }
+
+    public void setDeliveryCharge(double deliveryCharge) {
+        this.deliveryCharge = deliveryCharge;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
+    }
+
+    public boolean isNegotiated() {
+        return negotiated;
+    }
+
+    public void setNegotiated(boolean negotiated) {
+        this.negotiated = negotiated;
+    }
+
+    public double getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(double subtotal) {
+        this.subtotal = subtotal;
     }
 }

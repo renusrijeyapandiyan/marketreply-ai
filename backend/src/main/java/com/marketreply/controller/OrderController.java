@@ -35,6 +35,12 @@ public class OrderController {
     }
 
     /** Every order visible to the current user: placed by them, or placed against their listings. */
+    /** Orders placed on products this user sells. */
+    @GetMapping("/selling")
+    public ResponseEntity<List<OrderDTO>> getSellingOrders(HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(orderService.getSellerOrders(userId(httpRequest)));
+    }
+
     @GetMapping
     public ResponseEntity<List<OrderDTO>> getOrders(HttpServletRequest request) {
         return ResponseEntity.ok(orderService.getMyOrders(userId(request)));

@@ -105,9 +105,8 @@ public class CartService {
             req.setQuantity(item.getQuantity());
             req.setDeliveryMethod("DELIVERY");
             req.setDeliveryAddress(request.getDeliveryAddress());
-            if (request.getPaymentMethod() != null && !request.getPaymentMethod().isBlank()) {
-                req.setBuyerNotes("Preferred payment: " + request.getPaymentMethod());
-            }
+            req.setPaymentMethod(request.getPaymentMethod());
+            req.setBuyerPhone(request.getBuyerPhone());
             created.add(orderService.createOrder(buyerId, req));
         }
 
@@ -135,7 +134,13 @@ public class CartService {
             idto.setSellerId(item.getSellerId());
             idto.setProductName(item.getProductName());
             idto.setListedPrice(item.getListedPrice());
-            idto.setThumbnailImage(item.getThumbnailImage());
+            String thumb = item.getThumbnailImage();
+            if (thumb == null) {
+                thumb = sellerRepository.findById(item.getSellerId())
+                        .filter(sl -> sl.getProductImages() != null && !sl.getProductImages().isEmpty())
+                        .map(sl -> sl.getProductImages().get(0)).orElse(null);
+            }
+            idto.setThumbnailImage(thumb);
             idto.setQuantity(item.getQuantity());
             double lineTotal = (item.getListedPrice() != null ? item.getListedPrice() : 0) * item.getQuantity();
             idto.setLineTotal(lineTotal);

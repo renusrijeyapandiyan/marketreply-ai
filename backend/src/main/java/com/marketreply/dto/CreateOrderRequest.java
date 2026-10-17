@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 
 /** Payload a buyer submits to place an order against a seller's listing. */
 public class CreateOrderRequest {
+    private String paymentMethod;
+    private String buyerPhone;
+
 
     @NotBlank(message = "sellerId is required")
     private String sellerId;
@@ -65,5 +68,21 @@ public class CreateOrderRequest {
 
     public void setBuyerNotes(String buyerNotes) {
         this.buyerNotes = buyerNotes;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getBuyerPhone() {
+        return buyerPhone;
+    }
+
+    public void setBuyerPhone(String buyerPhone) {
+        this.buyerPhone = buyerPhone;
     }
 }
